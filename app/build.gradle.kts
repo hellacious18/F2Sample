@@ -1,6 +1,8 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    id ("com.google.gms.google-services") // Ensure this is added
+
 }
 
 android {
@@ -42,7 +44,17 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
+    implementation(libs.firebase.auth)
+    implementation(libs.play.services.auth)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+//    classpath ("org.jetbrains.kotlin:kotlin-gradle-plugin:2.1.0")
+
+    implementation("com.google.firebase:firebase-auth:23.2.0")
+    runtimeOnly("com.google.gms:google-services:4.4.2")
+    implementation("com.google.android.gms:play-services-auth:21.3.0")
+
+
+
 }

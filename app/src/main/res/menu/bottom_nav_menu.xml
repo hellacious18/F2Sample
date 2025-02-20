@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_beauty"
+        android:icon="@drawable/ar_on_you_24px"
+        android:title="Beauty" />
+    <item
+        android:id="@+id/nav_fashion"
+        android:icon="@drawable/checkroom_24px"
+        android:title="Fashion" />
+    <item
+        android:id="@+id/nav_profile"
+        android:icon="@drawable/person_24px"
+        android:title="Profile" />
+</menu>
