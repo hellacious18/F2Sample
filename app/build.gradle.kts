@@ -57,10 +57,13 @@ dependencies {
     implementation("com.google.firebase:firebase-bom:33.9.0")
     implementation("com.google.firebase:firebase-firestore:25.1.2")
 
+    implementation("com.google.firebase:firebase-vertexai:16.1.0")
 
     implementation ("com.github.bumptech.glide:glide:4.16.0")
     annotationProcessor ("com.github.bumptech.glide:compiler:4.16.0")
 
     implementation ("de.hdodenhof:circleimageview:3.1.0")
+    implementation ("io.noties.markwon:core:4.6.2")
+
 
 }

@@ -33,7 +33,7 @@ class HomeActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_home)
 
-        // 🔴 Check if user is logged in, otherwise redirect to login screen
+        //Check if user is logged in, otherwise redirect to login screen
         val auth = FirebaseAuth.getInstance()
         if (auth.currentUser == null) {
             val intent = Intent(this, MainActivity::class.java)
@@ -53,7 +53,7 @@ class HomeActivity : AppCompatActivity() {
         }
 
         if (savedInstanceState == null) {
-            loadFragment(BeautyFragment())
+            loadFragment(FashionFragment())
         }
     }
 
