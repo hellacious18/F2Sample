@@ -11,6 +11,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
+import com.example.f2sample.AboutMe
 import com.example.f2sample.MainActivity
 import com.example.f2sample.ProfileAdapter
 import com.example.f2sample.R
@@ -20,10 +21,11 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.firebase.auth.FirebaseAuth
+import de.hdodenhof.circleimageview.CircleImageView
 
 class ProfileFragment : Fragment() {
 
-    private lateinit var profileImage: ImageView
+    private lateinit var profileImage: CircleImageView
     private lateinit var profileName: TextView
     private lateinit var profileEmail: TextView
     private lateinit var listView: ListView
@@ -46,8 +48,9 @@ class ProfileFragment : Fragment() {
         loadUserData()
 
         val items = listOf(
-            ProfileItem(R.drawable.ar_on_you_24px, "Face Details"),
-            ProfileItem(R.drawable.checkroom_24px, "Body Proportions"),
+            ProfileItem(R.drawable.account_circle_24px, "About Me"),
+            ProfileItem(R.drawable.ar_on_you_24px, "Facial Features"),
+            ProfileItem(R.drawable.accessibility_new_24px, "Body Measurements"),
             ProfileItem(R.drawable.settings_24px, "Settings"),
             ProfileItem(R.drawable.logout_24px, "Logout")
         )
@@ -57,10 +60,11 @@ class ProfileFragment : Fragment() {
 
         listView.setOnItemClickListener { _, _, position, _ ->
             when (position) {
-                0 -> Toast.makeText(requireContext(), "Face Details Clicked", Toast.LENGTH_SHORT).show()
-                1 -> Toast.makeText(requireContext(), "Body Proportions Clicked", Toast.LENGTH_SHORT).show()
-                2 -> Toast.makeText(requireContext(), "Settings Clicked", Toast.LENGTH_SHORT).show()
-                3 -> logout()
+                0 -> {startActivity(Intent(requireContext(), AboutMe::class.java))}
+                1 -> Toast.makeText(requireContext(), "Face Details Clicked", Toast.LENGTH_SHORT).show()
+                2 -> Toast.makeText(requireContext(), "Body Proportions Clicked", Toast.LENGTH_SHORT).show()
+                3 -> Toast.makeText(requireContext(), "Settings Clicked", Toast.LENGTH_SHORT).show()
+                4 -> logout()
             }
         }
 
@@ -94,6 +98,7 @@ class ProfileFragment : Fragment() {
             Glide.with(this)
                 .load(account.photoUrl)
                 .placeholder(R.drawable.ic_launcher_foreground)
+                .circleCrop()
                 .into(profileImage)
         } else {
             Toast.makeText(requireContext(), "No Google Account Found", Toast.LENGTH_SHORT).show()

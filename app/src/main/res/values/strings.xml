@@ -1,4 +1,21 @@
 <resources>
     <string name="app_name">F2 Sample</string>
     <string name="default_web_client_id">500853578352-pj2easubfm81v17ob8veb4nl99ln4fit.apps.googleusercontent.com</string>
+
+    <string-array name="height_units">
+        <item>cm</item>
+        <item>ft</item>
+    </string-array>
+
+    <string-array name="weight_units">
+        <item>kg</item>
+        <item>lbs</item>
+    </string-array>
+
+    <string-array name="gender">
+        <item>Male</item>
+        <item>Female</item>
+        <item>Other</item>
+    </string-array>
+
 </resources>

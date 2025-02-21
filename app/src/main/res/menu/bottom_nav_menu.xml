@@ -6,7 +6,7 @@
         android:title="Beauty" />
     <item
         android:id="@+id/nav_fashion"
-        android:icon="@drawable/checkroom_24px"
+        android:icon="@drawable/accessibility_new_24px"
         android:title="Fashion" />
     <item
         android:id="@+id/nav_profile"
