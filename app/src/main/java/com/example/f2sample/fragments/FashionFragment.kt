@@ -1,16 +1,17 @@
 package com.example.f2sample.fragments
 
 import android.os.Bundle
-import android.text.Html
 import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
-import android.widget.TextView
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.example.f2sample.ChatAdapter
+import com.example.f2sample.Message
 import com.example.f2sample.R
 import com.google.firebase.Firebase
-import com.google.firebase.vertexai.GenerativeModel
 import com.google.firebase.vertexai.vertexAI
 import io.noties.markwon.Markwon
 import kotlinx.coroutines.CoroutineScope
@@ -19,49 +20,54 @@ import kotlinx.coroutines.launch
 
 class FashionFragment : Fragment(R.layout.fragment_fashion) {
 
-    private lateinit var generativeModel: GenerativeModel
-    private lateinit var textViewResult: TextView
-    private lateinit var btnGenerate: Button
-    private lateinit var prompt: EditText
+    private val generativeModel = Firebase.vertexAI.generativeModel("gemini-1.5-flash-001")
+
+    private lateinit var chatRecyclerView: RecyclerView
+    private lateinit var chatAdapter: ChatAdapter
+    private lateinit var inputMessage: EditText
+    private lateinit var sendButton: Button
+    private val messages = mutableListOf<Message>()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        textViewResult = view.findViewById(R.id.responseTextView)
-        btnGenerate = view.findViewById(R.id.sendButton)
-        prompt = view.findViewById(R.id.prompt)
+        chatRecyclerView = view.findViewById(R.id.chatRecyclerView)
+        inputMessage = view.findViewById(R.id.inputMessage)
+        sendButton = view.findViewById(R.id.sendButton)
 
-        // Initialize Vertex AI
-        generativeModel = Firebase.vertexAI.generativeModel("gemini-1.5-flash-001")
+        chatAdapter = ChatAdapter(messages)
+        chatRecyclerView.layoutManager = LinearLayoutManager(requireContext())
+        chatRecyclerView.adapter = chatAdapter
 
-        btnGenerate.setOnClickListener {
-            val userPrompt = prompt.text.toString()
-            if (userPrompt.isNotEmpty()) {
-                generateFashionAdvice(userPrompt)
-            } else {
-                textViewResult.text = "Please enter a prompt!"
+        sendButton.setOnClickListener {
+            val userInput = inputMessage.text.toString().trim()
+            if (userInput.isNotEmpty()) {
+                sendMessage(userInput)
+                inputMessage.text.clear()
             }
         }
     }
 
-    private fun generateFashionAdvice(prompt: String) {
+    private fun sendMessage(prompt: String) {
+        messages.add(Message(prompt, isUser = true))
+        chatAdapter.notifyItemInserted(messages.size - 1)
+        chatRecyclerView.scrollToPosition(messages.size - 1)
+
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val response = generativeModel.generateContent(prompt)
-                val result = response.text ?: "No response from AI"
-                Log.d("FashionFragment", "Response: $result")
+                val aiResponse = response.text ?: "No response from AI"
+                Log.d("FashionFragment", "AI Response: $aiResponse")
+
 
                 launch(Dispatchers.Main) {
-                    val markwon = Markwon.create(requireContext())
-                    markwon.setMarkdown(textViewResult, result) // Apply Markdown Formatting
+                    messages.add(Message(aiResponse, isUser = false))
+                    chatAdapter.notifyItemInserted(messages.size - 1)
+                    chatRecyclerView.scrollToPosition(messages.size - 1)
                 }
-
             } catch (e: Exception) {
-                Log.e("FashionFragment", "Error: ${e.message}", e)
-
-                launch(Dispatchers.Main) {
-                    textViewResult.text = "Error: ${e.message}"
-                }
+                e.printStackTrace()
+                Log.e("FashionFragment", "Error: ${e.message}")
             }
         }
     }
