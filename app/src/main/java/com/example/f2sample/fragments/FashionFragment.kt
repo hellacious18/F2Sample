@@ -12,6 +12,7 @@ import com.example.f2sample.ChatAdapter
 import com.example.f2sample.Message
 import com.example.f2sample.R
 import com.google.firebase.Firebase
+import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.vertexai.vertexAI
 import io.noties.markwon.Markwon
 import kotlinx.coroutines.CoroutineScope
@@ -21,6 +22,8 @@ import kotlinx.coroutines.launch
 class FashionFragment : Fragment(R.layout.fragment_fashion) {
 
     private val generativeModel = Firebase.vertexAI.generativeModel("gemini-1.5-flash-001")
+    private val firestore = FirebaseFirestore.getInstance()
+    private val chatCollection = firestore.collection("chats")
 
     private lateinit var chatRecyclerView: RecyclerView
     private lateinit var chatAdapter: ChatAdapter
@@ -39,6 +42,8 @@ class FashionFragment : Fragment(R.layout.fragment_fashion) {
         chatRecyclerView.layoutManager = LinearLayoutManager(requireContext())
         chatRecyclerView.adapter = chatAdapter
 
+        loadChatHistory()
+
         sendButton.setOnClickListener {
             val userInput = inputMessage.text.toString().trim()
             if (userInput.isNotEmpty()) {
@@ -48,10 +53,36 @@ class FashionFragment : Fragment(R.layout.fragment_fashion) {
         }
     }
 
+    private fun loadChatHistory() {
+        chatCollection.orderBy("timestamp").get()
+            .addOnSuccessListener { snapshot ->
+                for (doc in snapshot.documents) {
+                    val message = doc.getString("message") ?: ""
+                    val isUser = doc.getBoolean("isUser") ?: false
+                    messages.add(Message(message, isUser))
+                }
+                chatAdapter.notifyDataSetChanged()
+                chatRecyclerView.scrollToPosition(messages.size - 1)
+            }
+            .addOnFailureListener { e ->
+                Log.e("FashionFragment", "Failed to load chat history: ${e.message}")
+            }
+    }
+
+    private fun saveMessageToFirestore(message: String, isUser: Boolean) {
+        val chatData = hashMapOf(
+            "message" to message,
+            "isUser" to isUser,
+            "timestamp" to System.currentTimeMillis()
+        )
+        chatCollection.add(chatData)
+    }
+
     private fun sendMessage(prompt: String) {
         messages.add(Message(prompt, isUser = true))
         chatAdapter.notifyItemInserted(messages.size - 1)
         chatRecyclerView.scrollToPosition(messages.size - 1)
+        saveMessageToFirestore(prompt, true)
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
@@ -59,11 +90,11 @@ class FashionFragment : Fragment(R.layout.fragment_fashion) {
                 val aiResponse = response.text ?: "No response from AI"
                 Log.d("FashionFragment", "AI Response: $aiResponse")
 
-
                 launch(Dispatchers.Main) {
                     messages.add(Message(aiResponse, isUser = false))
                     chatAdapter.notifyItemInserted(messages.size - 1)
                     chatRecyclerView.scrollToPosition(messages.size - 1)
+                    saveMessageToFirestore(aiResponse, false)
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -72,3 +103,5 @@ class FashionFragment : Fragment(R.layout.fragment_fashion) {
         }
     }
 }
+
+// Now, messages will persist across sessions! 🚀
