@@ -122,15 +122,15 @@ class AboutMe : AppCompatActivity() {
                 "weightUnit" to weightUnit
             )
 
-            firestore.collection("users").document(user.uid)
+            firestore.collection("users").document(user.uid).collection("user_details").document("details")
                 .set(userDetails)
                 .addOnSuccessListener {
-                    Toast.makeText(this, "User details saved successfully", Toast.LENGTH_SHORT).show()
+                    Log.d("FashionFragment", "User details saved successfully!")
                 }
                 .addOnFailureListener { e ->
-                    Toast.makeText(this, "Error saving details: ${e.message}", Toast.LENGTH_SHORT).show()
-                    Log.e("AboutMe", "Error saving user details", e)
+                    Log.e("FashionFragment", "Error saving user details: ${e.message}")
                 }
+
         } else {
             Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show()
         }

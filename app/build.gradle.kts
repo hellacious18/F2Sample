@@ -56,6 +56,8 @@ dependencies {
     implementation("com.google.android.gms:play-services-auth:21.3.0")
     implementation("com.google.firebase:firebase-bom:33.9.0")
     implementation("com.google.firebase:firebase-firestore:25.1.2")
+    implementation ("com.google.firebase:firebase-storage:20.3.0")
+
 
     implementation("com.google.firebase:firebase-vertexai:16.1.0")
 
@@ -64,6 +66,9 @@ dependencies {
 
     implementation ("de.hdodenhof:circleimageview:3.1.0")
     implementation ("io.noties.markwon:core:4.6.2")
+
+    implementation ("com.squareup.okhttp3:okhttp:4.9.0")
+
 
 
 }

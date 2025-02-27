@@ -31,6 +31,7 @@ class ChatAdapter(private val messages: List<Message>) :
         if (message.isUser) {
             // User message: right side with bubble
             params.marginStart = 80
+            params.marginEnd = 0
             (holder.messageText.parent as LinearLayout).gravity = Gravity.END
             holder.messageText.setBackgroundResource(R.drawable.user_bubble_bg)
 
@@ -38,9 +39,9 @@ class ChatAdapter(private val messages: List<Message>) :
         } else {
             // AI message: left side, slightly in the middle
             params.marginEnd = 80
+            params.marginStart = 0
             (holder.messageText.parent as LinearLayout).gravity = Gravity.START
-//            holder.messageText.setBackgroundResource(R.drawable.ai_response_bg)
-
+            holder.messageText.setBackgroundResource(0)
             // Render AI response with Markdown directly
             markwon.setMarkdown(holder.messageText, message.text)
         }
