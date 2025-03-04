@@ -13,6 +13,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import de.hdodenhof.circleimageview.CircleImageView
 import java.util.Calendar
 
@@ -31,7 +32,6 @@ class AboutMe : AppCompatActivity() {
     private lateinit var spinnerWeight: Spinner
     private lateinit var btnSave: Button
 
-    // Firestore and Auth instances
     private val firestore: FirebaseFirestore by lazy { FirebaseFirestore.getInstance() }
     private val auth: FirebaseAuth by lazy { FirebaseAuth.getInstance() }
 
@@ -40,7 +40,6 @@ class AboutMe : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_about_me)
 
-        // Initialize UI elements
         profileImage = findViewById(R.id.aboutMeImage)
         name = findViewById(R.id.aboutMeName)
         email = findViewById(R.id.aboutMeEmail)
@@ -52,7 +51,6 @@ class AboutMe : AppCompatActivity() {
         spinnerWeight = findViewById(R.id.spinnerWeight)
         btnSave = findViewById(R.id.aboutMeSave)
 
-        // Initialize Google SignIn client
         googleSignInClient = GoogleSignIn.getClient(
             applicationContext,
             GoogleSignInOptions.DEFAULT_SIGN_IN
@@ -60,7 +58,6 @@ class AboutMe : AppCompatActivity() {
 
         loadUserData()
 
-        // Setup DatePicker for birthdate
         dateOfBirth.setOnClickListener {
             val calendar = Calendar.getInstance()
             val year = calendar.get(Calendar.YEAR)
@@ -78,7 +75,6 @@ class AboutMe : AppCompatActivity() {
             datePickerDialog.show()
         }
 
-        // Save details when Save button is clicked
         btnSave.setOnClickListener {
             saveUserDetails()
         }
@@ -86,14 +82,32 @@ class AboutMe : AppCompatActivity() {
 
     private fun loadUserData() {
         val account: GoogleSignInAccount? = GoogleSignIn.getLastSignedInAccount(applicationContext)
-        if (account != null) {
+        val user = auth.currentUser
+
+        if (account != null && user != null) {
             name.text = account.displayName ?: "No Name"
             email.text = account.email ?: "No Email"
+
             Glide.with(this)
                 .load(account.photoUrl)
                 .placeholder(R.drawable.ic_launcher_foreground)
                 .circleCrop()
                 .into(profileImage)
+
+            val emailKey = user.email?.replace(".", "_") ?: "No_Email"
+            val userDocRef = firestore.collection("users").document(emailKey)
+
+            userDocRef.collection("basicDetails").document("info").get().addOnSuccessListener { document ->
+                if (document.exists()) {
+                    dateOfBirth.text = document.getString("birthdate") ?: ""
+                    editTextHeight.setText(document.getString("height") ?: "")
+                    editTextWeight.setText(document.getString("weight") ?: "")
+                    spinnerGender.setSelection(getSpinnerIndex(spinnerGender, document.getString("gender") ?: ""))
+                    spinnerHeights.setSelection(getSpinnerIndex(spinnerHeights, document.getString("heightUnit") ?: ""))
+                    spinnerWeight.setSelection(getSpinnerIndex(spinnerWeight, document.getString("weightUnit") ?: ""))
+                    Log.d("AboutMe", "User basic details loaded successfully!")
+                }
+            }
         } else {
             Toast.makeText(applicationContext, "No Google Account Found", Toast.LENGTH_SHORT).show()
         }
@@ -102,37 +116,53 @@ class AboutMe : AppCompatActivity() {
     private fun saveUserDetails() {
         val user = auth.currentUser
         if (user != null) {
-            // Retrieve values from UI
-            val gender = spinnerGender.selectedItem.toString()
-            val birthdate = dateOfBirth.text.toString()
-            val height = editTextHeight.text.toString()
-            val heightUnit = spinnerHeights.selectedItem.toString()
-            val weight = editTextWeight.text.toString()
-            val weightUnit = spinnerWeight.selectedItem.toString()
+            val emailKey = user.email?.replace(".", "_") ?: "No_Email"
 
-            // Create data map
             val userDetails = hashMapOf(
                 "name" to name.text.toString(),
-                "email" to email.text.toString(),
-                "birthdate" to birthdate,
-                "gender" to gender,
-                "height" to height,
-                "heightUnit" to heightUnit,
-                "weight" to weight,
-                "weightUnit" to weightUnit
+                "email" to email.text.toString()
             )
 
-            firestore.collection("users").document(user.uid).collection("user_details").document("details")
-                .set(userDetails)
+            val basicDetails = hashMapOf(
+                "birthdate" to dateOfBirth.text.toString(),
+                "gender" to spinnerGender.selectedItem.toString(),
+                "height" to editTextHeight.text.toString(),
+                "heightUnit" to spinnerHeights.selectedItem.toString(),
+                "weight" to editTextWeight.text.toString(),
+                "weightUnit" to spinnerWeight.selectedItem.toString()
+            )
+
+            // Save user info document
+            firestore.collection("users").document(emailKey)
+                .set(mapOf("info" to userDetails), SetOptions.merge())
                 .addOnSuccessListener {
-                    Log.d("FashionFragment", "User details saved successfully!")
+                    Log.d("AboutMe", "User info saved successfully!")
                 }
                 .addOnFailureListener { e ->
-                    Log.e("FashionFragment", "Error saving user details: ${e.message}")
+                    Log.e("AboutMe", "Error saving user info: ${e.message}")
                 }
 
+            // Save basic details document
+            firestore.collection("users").document(emailKey)
+                .set(mapOf("basicDetails" to basicDetails), SetOptions.merge())
+                .addOnSuccessListener {
+                    Log.d("AboutMe", "User basic details saved successfully!")
+                }
+                .addOnFailureListener { e ->
+                    Log.e("AboutMe", "Error saving user basic details: ${e.message}")
+                }
         } else {
             Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show()
         }
+    }
+
+
+    private fun getSpinnerIndex(spinner: Spinner, value: String): Int {
+        for (i in 0 until spinner.count) {
+            if (spinner.getItemAtPosition(i).toString() == value) {
+                return i
+            }
+        }
+        return 0
     }
 }

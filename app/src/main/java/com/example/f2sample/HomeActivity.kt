@@ -9,6 +9,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
 import com.example.f2sample.fragments.BeautyFragment
 import com.example.f2sample.fragments.FashionFragment
+import com.example.f2sample.fragments.FeedFragment
 import com.example.f2sample.fragments.ProfileFragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.auth.FirebaseAuth
@@ -33,7 +34,6 @@ class HomeActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_home)
 
-        //Check if user is logged in, otherwise redirect to login screen
         val auth = FirebaseAuth.getInstance()
         if (auth.currentUser == null) {
             val intent = Intent(this, MainActivity::class.java)
@@ -47,13 +47,14 @@ class HomeActivity : AppCompatActivity() {
             when (item.itemId) {
                 R.id.nav_beauty -> loadFragment(BeautyFragment())
                 R.id.nav_fashion -> loadFragment(FashionFragment())
+                R.id.nav_feed -> loadFragment(FeedFragment())
                 R.id.nav_profile -> loadFragment(ProfileFragment())
             }
             true
         }
 
         if (savedInstanceState == null) {
-            loadFragment(FashionFragment())
+            loadFragment(BeautyFragment())
         }
     }
 

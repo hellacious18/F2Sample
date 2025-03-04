@@ -8,6 +8,11 @@
         android:id="@+id/nav_fashion"
         android:icon="@drawable/accessibility_new_24px"
         android:title="Fashion" />
+
+    <item
+        android:id="@+id/nav_feed"
+        android:icon="@drawable/post_24px"
+        android:title="Feed"/>
     <item
         android:id="@+id/nav_profile"
         android:icon="@drawable/person_24px"

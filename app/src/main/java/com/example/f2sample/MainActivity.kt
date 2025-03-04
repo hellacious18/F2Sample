@@ -6,8 +6,6 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
@@ -15,6 +13,7 @@ import com.google.android.gms.common.SignInButton
 import com.google.android.gms.common.api.ApiException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
+import com.google.firebase.firestore.FirebaseFirestore
 
 class MainActivity : AppCompatActivity() {
 
@@ -35,7 +34,6 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
 
         setContentView(R.layout.activity_main)
-
 
         auth = FirebaseAuth.getInstance()
 
@@ -87,16 +85,31 @@ class MainActivity : AppCompatActivity() {
                 if (task.isSuccessful) {
                     val user = auth.currentUser
                     Toast.makeText(this, "Welcome ${user?.displayName}", Toast.LENGTH_SHORT).show()
-                    val name = user?.displayName
-                    val email = user?.email
-                    val photoUrl = user?.photoUrl
 
-                    Log.d("UserData", "Name: $name, Email: $email, Photo: $photoUrl")
+                    val name = user?.displayName ?: "No Name"
+                    val email = user?.email ?: "No Email"
+                    val emailKey = user?.email?.replace(".", "_") ?: "No_Email"
+
+                    // Save to Firestore under users -> user1 -> info
+                    val firestore = FirebaseFirestore.getInstance()
+                    val userDetails = hashMapOf(
+                        "name" to name,
+                        "email" to email
+                    )
+
+                    firestore.collection("users").document(emailKey)
+                        .set(mapOf("info" to userDetails))
+                        .addOnSuccessListener {
+                            Log.d("UserData", "User data saved to Firestore under users -> $emailKey -> info!")
+                        }
+                        .addOnFailureListener { e ->
+                            Log.e("UserData", "Error saving user data: ${e.message}")
+                        }
+
                     goToHomeActivity()
                 } else {
                     Toast.makeText(this, "Authentication Failed", Toast.LENGTH_SHORT).show()
                 }
             }
     }
-
 }
