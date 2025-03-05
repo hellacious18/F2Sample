@@ -1,4 +1,4 @@
-package com.example.f2sample
+package com.example.f2sample.data
 
 data class Message(
     val text: String,

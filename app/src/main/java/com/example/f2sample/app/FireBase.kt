@@ -1,4 +1,4 @@
-package com.example.f2sample
+package com.example.f2sample.app
 
 import android.app.Application
 import com.google.firebase.FirebaseApp

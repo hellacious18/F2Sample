@@ -6,14 +6,13 @@ import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.f2sample.ChatAdapter
-import com.example.f2sample.Message
+import com.example.f2sample.adapter.ChatAdapter
+import com.example.f2sample.data.Message
 import com.example.f2sample.R
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
@@ -24,9 +23,6 @@ import com.google.firebase.vertexai.vertexAI
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 class FashionFragment : Fragment(R.layout.fragment_fashion) {
 

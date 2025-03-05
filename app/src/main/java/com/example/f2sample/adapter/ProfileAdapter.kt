@@ -1,4 +1,4 @@
-package com.example.f2sample
+package com.example.f2sample.adapter
 
 import android.content.Context
 import android.view.LayoutInflater
@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.ImageView
 import android.widget.TextView
+import com.example.f2sample.R
 import com.example.f2sample.data.ProfileItem
 
 class ProfileAdapter(private val context: Context, private val items: List<ProfileItem>) : BaseAdapter() {
