@@ -4,12 +4,10 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
 import com.example.f2sample.fragments.BeautyFragment
 import com.example.f2sample.fragments.FashionFragment
-import com.example.f2sample.fragments.FeedFragment
+import com.example.f2sample.fragments.UserFeedFragment
 import com.example.f2sample.fragments.ProfileFragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.auth.FirebaseAuth
@@ -47,7 +45,7 @@ class HomeActivity : AppCompatActivity() {
             when (item.itemId) {
                 R.id.nav_beauty -> loadFragment(BeautyFragment())
                 R.id.nav_fashion -> loadFragment(FashionFragment())
-                R.id.nav_feed -> loadFragment(FeedFragment())
+                R.id.nav_feed -> loadFragment(UserFeedFragment())
                 R.id.nav_profile -> loadFragment(ProfileFragment())
             }
             true
