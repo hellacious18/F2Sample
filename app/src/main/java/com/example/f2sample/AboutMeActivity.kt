@@ -17,7 +17,7 @@ import com.google.firebase.firestore.SetOptions
 import de.hdodenhof.circleimageview.CircleImageView
 import java.util.Calendar
 
-class AboutMe : AppCompatActivity() {
+class AboutMeActivity : AppCompatActivity() {
 
     private lateinit var googleSignInClient: GoogleSignInClient
 
