@@ -39,8 +39,8 @@ class UserFeedFragment : Fragment(R.layout.fragment_user_feed) {
         recyclerViewUserFeed = view.findViewById(R.id.recyclerViewUserFeed)
         floatingButton = view.findViewById(R.id.floatingButton)
 
-        // Setup RecyclerView
-        adapter = PostAdapter(postList)
+        // Setup RecyclerView with delete functionality
+        adapter = PostAdapter(postList) { post -> deletePost(post) }
         recyclerViewUserFeed.layoutManager = LinearLayoutManager(requireContext())
         recyclerViewUserFeed.adapter = adapter
 
@@ -68,17 +68,18 @@ class UserFeedFragment : Fragment(R.layout.fragment_user_feed) {
     }
 
     private fun savePost(imageUrl: String) {
+        val postRef = db.collection("posts").document()
         val post = Post(
+            postId = postRef.id, // Store Firestore document ID
             imageUrl = imageUrl,
             userProfileImageUrl = (auth.currentUser?.photoUrl ?: "").toString(),
             userName = auth.currentUser?.displayName ?: "Anonymous",
             likes = 0,
-            comments = emptyList(),
-            rating = 0f
+            userId = auth.currentUser?.uid ?: "",
+            likedBy = emptyList()
         )
 
-        db.collection("posts")
-            .add(post)
+        postRef.set(post)
             .addOnSuccessListener {
                 Toast.makeText(requireContext(), "Post uploaded!", Toast.LENGTH_SHORT).show()
             }
@@ -95,6 +96,32 @@ class UserFeedFragment : Fragment(R.layout.fragment_user_feed) {
                     postList.addAll(it)
                     adapter.notifyDataSetChanged()
                 }
+            }
+    }
+
+    private fun deletePost(post: Post) {
+
+        val currentUserUid = auth.currentUser?.uid ?: return
+        // Ensure only the owner can delete the post
+        if (post.userId != currentUserUid) {
+            Toast.makeText(requireContext(), "You can only delete your own posts!", Toast.LENGTH_SHORT).show()
+            return
+        }
+        db.collection("posts").document(post.postId)
+            .delete()
+            .addOnSuccessListener {
+                val imageRef = storage.getReferenceFromUrl(post.imageUrl)
+                imageRef.delete()
+                    .addOnSuccessListener {
+                        Toast.makeText(requireContext(), "Post deleted!", Toast.LENGTH_SHORT).show()
+                        adapter.removePost(post)
+                    }
+                    .addOnFailureListener {
+                        Toast.makeText(requireContext(), "Failed to delete image", Toast.LENGTH_SHORT).show()
+                    }
+            }
+            .addOnFailureListener {
+                Toast.makeText(requireContext(), "Failed to delete post", Toast.LENGTH_SHORT).show()
             }
     }
 }

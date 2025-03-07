@@ -47,10 +47,9 @@
                 android:id="@+id/deletePostButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="@null"
-                android:src="@drawable/delete_24px"
-                android:contentDescription="Delete Post"
-                android:visibility="gone"/>
+                android:layout_marginStart="100dp"
+                android:background="@drawable/delete_24px"
+                android:contentDescription="Delete Post"/>
 
         </LinearLayout>
 
@@ -97,6 +96,15 @@
                 android:padding="8dp"
                 android:src="@drawable/favorite_24px"
                 android:contentDescription="Like" />
+
+            <TextView
+                android:id="@+id/likeCountText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0"
+                android:textSize="20dp"
+                android:padding="8dp"
+                android:contentDescription="LikeCount"/>
 
             <ImageButton
                 android:id="@+id/commentButton"
