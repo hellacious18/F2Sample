@@ -144,7 +144,8 @@ class PostAdapter(
             userId = auth.currentUser?.uid ?: "",
             userName = auth.currentUser?.displayName ?: "Anonymous",
             userProfileImageUrl = auth.currentUser?.photoUrl.toString(),
-            commentText = commentText
+            commentText = commentText,
+            timestamp = System.currentTimeMillis()
         )
 
         commentRef.set(comment)

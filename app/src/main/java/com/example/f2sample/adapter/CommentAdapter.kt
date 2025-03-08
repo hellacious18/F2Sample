@@ -10,6 +10,9 @@ import com.bumptech.glide.Glide
 import com.example.f2sample.R
 import com.example.f2sample.data.Comment
 import de.hdodenhof.circleimageview.CircleImageView
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class CommentAdapter(
     private val commentList: List<Comment>
@@ -19,6 +22,7 @@ class CommentAdapter(
         val userImage: CircleImageView = itemView.findViewById(R.id.commentUserProfilePicture)
         val userName: TextView = itemView.findViewById(R.id.commentUserName)
         val commentText: TextView = itemView.findViewById(R.id.commentText)
+        val commentTime: TextView = itemView.findViewById(R.id.commentTime)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CommentViewHolder {
@@ -36,6 +40,11 @@ class CommentAdapter(
             .load(comment.userProfileImageUrl)
             .placeholder(R.drawable.account_circle_24px)
             .into(holder.userImage)
+
+        // Format timestamp
+        val dateFormat = SimpleDateFormat("MMM d, h:mm a", Locale.getDefault())
+        val date = Date(comment.timestamp)
+        holder.commentTime.text = dateFormat.format(date)
     }
 
     override fun getItemCount() = commentList.size
