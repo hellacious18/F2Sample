@@ -102,13 +102,15 @@ class PostAdapter(
 
         val updatedLikedBy = post.likedBy.toMutableSet().apply {
             if (contains(userId)) remove(userId) else add(userId)
-        }
+        }.toList()
+
         val updatedLikes = updatedLikedBy.size
 
         postRef.update(mapOf(
             "likes" to updatedLikes,
             "likedBy" to updatedLikedBy
-        )).addOnSuccessListener {
+        ))
+            .addOnSuccessListener {
             post.likes = updatedLikes
             post.likedBy = updatedLikedBy.toList()
 
