@@ -30,6 +30,7 @@ class PostAdapter(
         val postImageView: ImageView = itemView.findViewById(R.id.postImageView)
         val postUserPicture: CircleImageView = itemView.findViewById(R.id.userProfilePicture)
         val postUserName: TextView = itemView.findViewById(R.id.postUserName)
+        val postMenu: ImageButton = itemView.findViewById(R.id.post_menu)
         val ratingBar: RatingBar = itemView.findViewById(R.id.ratingBar)
         val ratingImageButton: ImageButton = itemView.findViewById(R.id.ratingImageButton)
         val ratingCount: TextView = itemView.findViewById(R.id.ratingCount)
@@ -38,7 +39,6 @@ class PostAdapter(
         val likeCountText: TextView = itemView.findViewById(R.id.likeCountText)
         val commentButton: ImageButton = itemView.findViewById(R.id.commentButton)
         val shareButton: ImageButton = itemView.findViewById(R.id.shareButton)
-        val deleteButton: ImageButton = itemView.findViewById(R.id.deletePostButton)
         val postCommentButton: ImageButton = itemView.findViewById(R.id.postCommentButton)
         val editTextComment: EditText = itemView.findViewById(R.id.editTextComment)
         val commentSection: View = itemView.findViewById(R.id.commentSection)
@@ -65,10 +65,27 @@ class PostAdapter(
 
         holder.likeButton.setImageResource(if (isLiked) R.drawable.like_red_24px else R.drawable.like_24px)
 
-        holder.deleteButton.visibility = if (post.userId == currentUser) View.VISIBLE else View.GONE
+        holder.postMenu.visibility = if (post.userId == currentUser) View.VISIBLE else View.GONE
 
         loadComments(post.postId, holder)
         loadAverageRating(post, holder)
+
+        holder.postMenu.setOnClickListener { view ->
+            val popupMenu = androidx.appcompat.widget.PopupMenu(holder.itemView.context, view)
+            popupMenu.inflate(R.menu.post_menu)
+
+            popupMenu.setOnMenuItemClickListener { item ->
+                when (item.itemId) {
+                    R.id.action_delete_post -> {
+                        showDeleteConfirmationDialog(holder.itemView, post)
+                        true
+                    }
+                    else -> false
+                }
+            }
+            popupMenu.show()
+        }
+
 
         holder.likeButton.setOnClickListener { toggleLike(post, currentUser, holder) }
         holder.commentButton.setOnClickListener {
@@ -88,16 +105,6 @@ class PostAdapter(
         }
 
         holder.recyclerViewComment.scrollToPosition(0)
-
-        holder.deleteButton.setOnClickListener {
-            AlertDialog.Builder(holder.itemView.context).apply {
-                setTitle("Delete Post")
-                setMessage("Are you sure you want to delete this post?")
-                setPositiveButton("Delete") { _, _ -> onDeleteClick(post) }
-                setNegativeButton("Cancel", null)
-                show()
-            }
-        }
 
         holder.ratingImageButton.setImageResource(if (isRated) R.drawable.star_yellow_24dp else R.drawable.star_24px)
         holder.ratingImageButton.setOnClickListener {
@@ -213,4 +220,28 @@ class PostAdapter(
             }
     }
 
+
+private fun showDeleteConfirmationDialog(view: View, post: Post) {
+    AlertDialog.Builder(view.context).apply {
+        setTitle("Delete Post")
+        setMessage("Are you sure you want to delete this post?")
+        setPositiveButton("Delete") { _, _ ->
+            deletePost(post)
+        }
+        setNegativeButton("Cancel", null)
+        show()
+    }
+}
+
+private fun deletePost(post: Post) {
+    val db = FirebaseFirestore.getInstance()
+    db.collection("posts").document(post.postId)
+        .delete()
+        .addOnSuccessListener {
+            removePost(post)
+        }
+        .addOnFailureListener { e ->
+            println("Failed to delete post: ${e.message}")
+        }
+}
 }
