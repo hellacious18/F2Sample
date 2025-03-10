@@ -3,6 +3,7 @@ package com.example.f2sample
 import android.app.DatePickerDialog
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.widget.*
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -25,12 +26,21 @@ class AboutMeActivity : AppCompatActivity() {
     private lateinit var name: TextView
     private lateinit var email: TextView
     private lateinit var dateOfBirth: TextView
+    private lateinit var showDateOfBirth: TextView
     private lateinit var spinnerGender: Spinner
+    private lateinit var showGender: TextView
     private lateinit var editTextHeight: EditText
     private lateinit var spinnerHeights: Spinner
+    private lateinit var showHeight: TextView
     private lateinit var editTextWeight: EditText
     private lateinit var spinnerWeight: Spinner
+    private lateinit var editProfile: ImageView
+    private lateinit var showWeight: TextView
     private lateinit var btnSave: Button
+    private var height: String = ""
+    private var heightUnit: String = ""
+    private var weight: String = ""
+    private var weightUnit: String = ""
 
     private val firestore: FirebaseFirestore by lazy { FirebaseFirestore.getInstance() }
     private val auth: FirebaseAuth by lazy { FirebaseAuth.getInstance() }
@@ -44,11 +54,16 @@ class AboutMeActivity : AppCompatActivity() {
         name = findViewById(R.id.aboutMeName)
         email = findViewById(R.id.aboutMeEmail)
         dateOfBirth = findViewById(R.id.dateOfBirth)
+        showDateOfBirth = findViewById(R.id.dateOfBirthShow)
         spinnerGender = findViewById(R.id.spinnerGender)
+        showGender = findViewById(R.id.textViewGenderShow)
         editTextHeight = findViewById(R.id.editTextHeight)
         spinnerHeights = findViewById(R.id.spinnerHeight)
+        showHeight = findViewById(R.id.textViewHeightShow)
         editTextWeight = findViewById(R.id.editTextWeight)
         spinnerWeight = findViewById(R.id.spinnerWeight)
+        showWeight = findViewById(R.id.textViewWeightShow)
+        editProfile = findViewById(R.id.editProfile)
         btnSave = findViewById(R.id.aboutMeSave)
 
         googleSignInClient = GoogleSignIn.getClient(
@@ -77,7 +92,35 @@ class AboutMeActivity : AppCompatActivity() {
 
         btnSave.setOnClickListener {
             saveUserDetails()
+            toggleEditMode(false)
+            loadUserData()// Hide fields after saving
         }
+
+        editProfile.setOnClickListener {
+            toggleEditMode(true)  // Enable edit mode again
+        }
+    }
+
+    private fun toggleEditMode(enable: Boolean) {
+        val visibility = if (enable) View.VISIBLE else View.GONE
+        val inverseVisibility = if (enable) View.GONE else View.VISIBLE
+
+        // Show/Hide EditText and Spinners
+        editTextHeight.visibility = visibility
+        spinnerHeights.visibility = visibility
+        editTextWeight.visibility = visibility
+        spinnerWeight.visibility = visibility
+        spinnerGender.visibility = visibility
+        dateOfBirth.visibility = visibility
+        dateOfBirth.isClickable = enable  // Enable/Disable date picker
+
+        // Show/Hide Save button & Edit Emoji
+        btnSave.visibility = visibility
+        editProfile.visibility = inverseVisibility
+        showDateOfBirth.visibility = inverseVisibility
+        showGender.visibility = inverseVisibility
+        showHeight.visibility = inverseVisibility
+        showWeight.visibility = inverseVisibility
     }
 
     private fun loadUserData() {
@@ -97,21 +140,74 @@ class AboutMeActivity : AppCompatActivity() {
             val emailKey = user.email?.replace(".", "_") ?: "No_Email"
             val userDocRef = firestore.collection("users").document(emailKey)
 
-            userDocRef.collection("basicDetails").document("info").get().addOnSuccessListener { document ->
+            userDocRef.get().addOnSuccessListener { document ->
                 if (document.exists()) {
-                    dateOfBirth.text = document.getString("birthdate") ?: ""
-                    editTextHeight.setText(document.getString("height") ?: "")
-                    editTextWeight.setText(document.getString("weight") ?: "")
-                    spinnerGender.setSelection(getSpinnerIndex(spinnerGender, document.getString("gender") ?: ""))
-                    spinnerHeights.setSelection(getSpinnerIndex(spinnerHeights, document.getString("heightUnit") ?: ""))
-                    spinnerWeight.setSelection(getSpinnerIndex(spinnerWeight, document.getString("weightUnit") ?: ""))
-                    Log.d("AboutMe", "User basic details loaded successfully!")
+                    val userData = document.get("info") as? Map<String, Any>
+                    val basicDetails = document.get("basicDetails") as? Map<String, Any>
+
+                    if (userData != null) {
+                        name.text = userData["name"] as? String ?: ""
+                        email.text = userData["email"] as? String ?: ""
+                    }
+
+                    if (basicDetails != null) {
+                        height = basicDetails["height"] as? String ?: ""
+                        heightUnit = basicDetails["heightUnit"] as? String ?: ""
+                        weight = basicDetails["weight"] as? String ?: ""
+                        weightUnit = basicDetails["weightUnit"] as? String ?: ""
+
+                        showDateOfBirth.text = basicDetails["birthdate"] as? String ?: "DD/MM/YYYY"
+                        showGender.text = basicDetails["gender"] as? String ?: ""
+                        showHeight.text = "$height $heightUnit"
+                        showWeight.text = "$weight $weightUnit"
+
+//                        spinnerGender.setSelection(getSpinnerIndex(spinnerGender, basicDetails["gender"] as? String ?: ""))
+//                        spinnerHeights.setSelection(getSpinnerIndex(spinnerHeights, basicDetails["heightUnit"] as? String ?: ""))
+//                        spinnerWeight.setSelection(getSpinnerIndex(spinnerWeight, basicDetails["weightUnit"] as? String ?: ""))
+                    }
+                    Log.d("AboutMe", "User details loaded successfully!")
                 }
+            }.addOnFailureListener { e ->
+                Log.e("AboutMe", "Error loading user details: ${e.message}")
             }
         } else {
             Toast.makeText(applicationContext, "No Google Account Found", Toast.LENGTH_SHORT).show()
         }
     }
+
+
+//    private fun loadUserData() {
+//        val account: GoogleSignInAccount? = GoogleSignIn.getLastSignedInAccount(applicationContext)
+//        val user = auth.currentUser
+//
+//        if (account != null && user != null) {
+//            name.text = account.displayName ?: "No Name"
+//            email.text = account.email ?: "No Email"
+//
+//            Glide.with(this)
+//                .load(account.photoUrl)
+//                .placeholder(R.drawable.ic_launcher_foreground)
+//                .circleCrop()
+//                .into(profileImage)
+//
+//            val emailKey = user.email?.replace(".", "_") ?: "No_Email"
+//            val userDocRef = firestore.collection("users").document(emailKey)
+//
+//            userDocRef.collection("basicDetails").document("info").get().addOnSuccessListener { document ->
+//                if (document.exists()) {
+//                    dateOfBirth.text = document.getString("birthdate") ?: ""
+//                    editTextHeight.setText(document.getString("height") ?: "")
+//                    editTextWeight.setText(document.getString("weight") ?: "")
+//                    spinnerGender.setSelection(getSpinnerIndex(spinnerGender, document.getString("gender") ?: ""))
+//                    spinnerHeights.setSelection(getSpinnerIndex(spinnerHeights, document.getString("heightUnit") ?: ""))
+//                    spinnerWeight.setSelection(getSpinnerIndex(spinnerWeight, document.getString("weightUnit") ?: ""))
+//                    Log.d("AboutMe", "User basic details loaded successfully!")
+//                }
+//            }
+//        } else {
+//            Toast.makeText(applicationContext, "No Google Account Found", Toast.LENGTH_SHORT).show()
+//        }
+//    }
 
     private fun saveUserDetails() {
         val user = auth.currentUser

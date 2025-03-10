@@ -2,161 +2,245 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="20dp"
+    android:padding="16dp"
     tools:context=".AboutMeActivity">
+
+    <!-- Guideline for structured vertical spacing -->
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guidelineCenter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.5" />
 
     <TextView
         android:id="@+id/aboutMeTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:paddingTop="100dp"
         android:text="About Me"
-        android:textSize="25dp"
+        android:textSize="24sp"
         android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:paddingTop="100dp"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/aboutMeImage"
-        android:layout_width="190dp"
-        android:layout_height="190dp"
-        android:padding="20dp"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
         android:src="@drawable/account_circle_24px"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/aboutMeTitle"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/aboutMeTitle"
-        />
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="16dp" />
 
     <TextView
         android:id="@+id/aboutMeName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="name"
+        android:text="Your Name"
+        android:textSize="20sp"
         android:textStyle="bold"
-        android:textSize="20dp"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/aboutMeImage"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/aboutMeImage" />
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="8dp" />
 
     <TextView
         android:id="@+id/aboutMeEmail"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="example@gmail.com"
-        android:textSize="20dp"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:textSize="16sp"
+        app:layout_constraintTop_toBottomOf="@id/aboutMeName"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/aboutMeName" />
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="4dp" />
+
+    <ImageView
+        android:id="@+id/editProfile"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/edit_24px"
+        android:visibility="visible"
+        android:padding="10dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/aboutMeEmail"/>
 
 
+    <!-- Gender Selection -->
     <TextView
         android:id="@+id/textViewGender"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Gender: "
-        android:textSize="20dp"
-        android:layout_marginTop="30dp"
+        android:text="Gender:"
+        android:textSize="18sp"
+        app:layout_constraintTop_toBottomOf="@id/aboutMeEmail"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/aboutMeEmail" />
+        android:layout_marginTop="16dp" />
+
+    <TextView
+        android:id="@+id/textViewGenderShow"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="None"
+        android:textSize="18sp"
+        app:layout_constraintStart_toEndOf="@id/textViewGender"
+        app:layout_constraintTop_toBottomOf="@id/aboutMeEmail"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="16dp"/>
 
     <Spinner
         android:id="@+id/spinnerGender"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:entries="@array/gender"
-        app:layout_constraintStart_toEndOf="@+id/textViewGender"
-        app:layout_constraintTop_toTopOf="@+id/textViewGender" />
+        android:visibility="gone"
+        app:layout_constraintStart_toEndOf="@id/textViewGender"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/aboutMeEmail"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="16dp"/>
 
-
+    <!-- Date of Birth -->
     <TextView
         android:id="@+id/textViewDOB"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Date Of Birth:"
-        android:layout_marginTop="30dp"
-
-        android:textSize="20dp"
+        android:text="Date of Birth:"
+        android:textSize="18sp"
+        app:layout_constraintTop_toBottomOf="@id/textViewGender"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textViewGender" />
+        android:layout_marginTop="16dp" />
 
     <TextView
         android:id="@+id/dateOfBirth"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:gravity="center"
         android:hint="DD/MM/YYYY"
-        android:textSize="20dp"
+        android:visibility="gone"
+        android:textSize="18sp"
         android:clickable="true"
-        app:layout_constraintStart_toEndOf="@+id/textViewDOB"
-        app:layout_constraintTop_toTopOf="@+id/textViewDOB" />
+        app:layout_constraintStart_toEndOf="@id/textViewDOB"
+        app:layout_constraintTop_toBottomOf="@id/spinnerGender"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="16dp"/>
 
+    <TextView
+        android:id="@+id/dateOfBirthShow"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="None"
+        android:textSize="18sp"
+        android:clickable="true"
+        app:layout_constraintStart_toEndOf="@id/textViewDOB"
+        app:layout_constraintTop_toBottomOf="@id/textViewGenderShow"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="16dp"/>
+
+    <!-- Height -->
     <TextView
         android:id="@+id/textViewHeight"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Height: "
-        android:textSize="20dp"
-        android:layout_marginTop="30dp"
+        android:text="Height:"
+        android:textSize="18sp"
+        app:layout_constraintTop_toBottomOf="@id/textViewDOB"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textViewDOB" />
+        android:layout_marginTop="16dp" />
 
     <EditText
         android:id="@+id/editTextHeight"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:hint="000"
+        android:visibility="gone"
         android:inputType="numberDecimal"
-        app:layout_constraintStart_toEndOf="@+id/textViewHeight"
-        app:layout_constraintTop_toTopOf="@+id/textViewHeight" />
+        app:layout_constraintStart_toEndOf="@id/textViewHeight"
+        app:layout_constraintTop_toBottomOf="@id/dateOfBirth"
+        app:layout_constraintEnd_toStartOf="@id/spinnerHeight"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="5dp"/>
+
+    <TextView
+        android:id="@+id/textViewHeightShow"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="None"
+        android:textSize="18sp"
+        app:layout_constraintStart_toEndOf="@id/textViewHeight"
+        app:layout_constraintTop_toBottomOf="@id/dateOfBirthShow"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="16dp" />
 
     <Spinner
         android:id="@+id/spinnerHeight"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:visibility="gone"
         android:entries="@array/height_units"
-        app:layout_constraintStart_toEndOf="@+id/editTextHeight"
-        app:layout_constraintTop_toTopOf="@+id/textViewHeight" />
+        android:layout_marginTop="5dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/editTextHeight" />
 
+    <!-- Weight -->
     <TextView
         android:id="@+id/textViewWeight"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Weight"
-        android:textSize="20dp"
-        android:layout_marginTop="30dp"
+        android:text="Weight:"
+        android:textSize="18sp"
+        app:layout_constraintTop_toBottomOf="@id/textViewHeight"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textViewHeight" />
+        android:layout_marginTop="23dp" />
 
     <EditText
         android:id="@+id/editTextWeight"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:hint="000"
-        app:layout_constraintStart_toEndOf="@+id/textViewWeight"
-        app:layout_constraintTop_toTopOf="@+id/textViewWeight" />
+        android:visibility="gone"
+        android:inputType="numberDecimal"
+        app:layout_constraintStart_toEndOf="@id/textViewWeight"
+        app:layout_constraintTop_toBottomOf="@id/editTextHeight"
+        app:layout_constraintEnd_toStartOf="@id/spinnerWeight"
+        android:layout_marginStart="8dp"/>
 
     <Spinner
         android:id="@+id/spinnerWeight"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:entries="@array/weight_units"
-        app:layout_constraintStart_toEndOf="@+id/editTextWeight"
-        app:layout_constraintTop_toTopOf="@+id/textViewWeight" />
+        android:layout_marginTop="5dp"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/editTextWeight" />
 
+    <TextView
+        android:id="@+id/textViewWeightShow"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="None"
+        android:textSize="18sp"
+        app:layout_constraintStart_toEndOf="@id/textViewWeight"
+        app:layout_constraintTop_toBottomOf="@id/textViewHeightShow"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="22dp" />
+
+    <!-- Save Button -->
     <Button
         android:id="@+id/aboutMeSave"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Save"
+        android:textColor="@android:color/white"
+        android:padding="12dp"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-
-
-
+        android:layout_marginBottom="24dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
