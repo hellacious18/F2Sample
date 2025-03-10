@@ -15,7 +15,7 @@
         android:padding="8dp">
 
         <!-- User Info Row -->
-        <LinearLayout
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/userInfoLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -30,30 +30,59 @@
                 android:id="@+id/userProfilePicture"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
-                android:layout_marginEnd="8dp"
                 android:scaleType="centerCrop"
-                android:src="@drawable/account_circle_24px"/>
+                android:src="@drawable/account_circle_24px"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
                 android:id="@+id/postUserName"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:padding="8dp"
                 android:text="example@gmail.com"
                 android:textColor="@color/black"
                 android:textSize="16sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/imageButton"
+                app:layout_constraintStart_toEndOf="@+id/userProfilePicture"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <ImageButton
+                android:id="@+id/imageButton"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@null"
+                android:src="@drawable/star_yellow_24dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/textViewAvgRatings"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/textViewAvgRatings"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0.0"
+                android:textSize="16dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/deletePostButton"
+                app:layout_constraintTop_toTopOf="parent" />
 
             <ImageButton
                 android:id="@+id/deletePostButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="100dp"
-                android:background="@drawable/delete_24px"
-                android:contentDescription="Delete Post"/>
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@null"
+                android:src="@drawable/delete_24px"
+                android:contentDescription="Delete Post"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
-        </LinearLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <!-- Post Image -->
         <ImageView
             android:id="@+id/postImageView"
             android:layout_width="match_parent"
@@ -64,75 +93,87 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
 
-        <!-- Rating Bar -->
-        <RatingBar
-            android:id="@+id/ratingBar"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:numStars="5"
-            android:stepSize="0.5"
-            app:layout_constraintTop_toBottomOf="@+id/postImageView"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
-
-        <!-- Action Buttons -->
         <LinearLayout
             android:id="@+id/actionButtonsLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
             android:gravity="center"
-            android:layout_marginTop="8dp"
-            app:layout_constraintTop_toBottomOf="@+id/ratingBar"
+            android:orientation="horizontal"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
+            app:layout_constraintTop_toBottomOf="@+id/postImageView">
+
+            <ImageButton
+                android:id="@+id/ratingImageButton"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@null"
+                android:padding="8dp"
+                android:src="@drawable/star_24px" />
+
+            <TextView
+                android:id="@+id/ratingCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="8dp"
+                android:text="0"
+                android:textSize="20dp" />
 
             <ImageButton
                 android:id="@+id/likeButton"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:background="@null"
+                android:contentDescription="Like"
                 android:padding="8dp"
-                android:src="@drawable/favorite_24px"
-                android:contentDescription="Like" />
+                android:src="@drawable/like_24px" />
 
             <TextView
                 android:id="@+id/likeCountText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="0"
-                android:textSize="20dp"
+                android:contentDescription="LikeCount"
                 android:padding="8dp"
-                android:contentDescription="LikeCount"/>
+                android:text="0"
+                android:textSize="20dp" />
 
             <ImageButton
                 android:id="@+id/commentButton"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:background="@null"
+                android:contentDescription="Comment"
                 android:padding="8dp"
-                android:src="@drawable/comment_24px"
-                android:contentDescription="Comment" />
+                android:src="@drawable/comment_24px" />
 
             <TextView
                 android:id="@+id/commentCountText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="0"
-                android:textSize="20dp"
+                android:contentDescription="LikeCount"
                 android:padding="8dp"
-                android:contentDescription="LikeCount"/>
+                android:text="0"
+                android:textSize="20dp" />
 
             <ImageButton
                 android:id="@+id/shareButton"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:background="@null"
+                android:contentDescription="Share"
                 android:padding="8dp"
-                android:src="@drawable/share_24px"
-                android:contentDescription="Share" />
+                android:src="@drawable/share_24px" />
         </LinearLayout>
+
+        <RatingBar
+            android:id="@+id/ratingBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/actionButtonsLayout" />
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/commentSection"

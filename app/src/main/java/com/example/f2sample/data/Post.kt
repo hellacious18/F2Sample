@@ -17,5 +17,5 @@ data class Post(
     var likes: Int = 0,
     var likedBy: List<String> = emptyList(),
     val comments: List<Comment> = emptyList(),
-    val rating: Float = 0f
-)
+    val ratings: Map<String, Float> = mapOf()
+    )

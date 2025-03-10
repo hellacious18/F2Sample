@@ -1,5 +1,6 @@
 package com.example.f2sample.adapter
 
+import android.app.AlertDialog
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,7 +13,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.f2sample.R
-import com.example.f2sample.adapter.CommentAdapter
 import com.example.f2sample.data.Comment
 import com.example.f2sample.data.Post
 import com.google.firebase.auth.FirebaseAuth
@@ -31,6 +31,9 @@ class PostAdapter(
         val postUserPicture: CircleImageView = itemView.findViewById(R.id.userProfilePicture)
         val postUserName: TextView = itemView.findViewById(R.id.postUserName)
         val ratingBar: RatingBar = itemView.findViewById(R.id.ratingBar)
+        val ratingImageButton: ImageButton = itemView.findViewById(R.id.ratingImageButton)
+        val ratingCount: TextView = itemView.findViewById(R.id.ratingCount)
+        var ratingAverage: TextView = itemView.findViewById(R.id.textViewAvgRatings)
         val likeButton: ImageButton = itemView.findViewById(R.id.likeButton)
         val likeCountText: TextView = itemView.findViewById(R.id.likeCountText)
         val commentButton: ImageButton = itemView.findViewById(R.id.commentButton)
@@ -51,20 +54,21 @@ class PostAdapter(
     override fun onBindViewHolder(holder: PostViewHolder, position: Int) {
         val post = postList[position]
         val currentUser = auth.currentUser?.uid ?: return
+        val isLiked = post.likedBy.contains(currentUser)
+        val isRated = post.ratings.containsKey(currentUser)
 
         Glide.with(holder.itemView.context).load(post.imageUrl).into(holder.postImageView)
         Glide.with(holder.itemView.context).load(post.userProfileImageUrl).into(holder.postUserPicture)
 
         holder.postUserName.text = post.userName
-        holder.ratingBar.rating = post.rating
         holder.likeCountText.text = post.likes.toString()
 
-        val isLiked = post.likedBy.contains(currentUser)
-        holder.likeButton.setImageResource(if (isLiked) R.drawable.liked_24px else R.drawable.favorite_24px)
+        holder.likeButton.setImageResource(if (isLiked) R.drawable.like_red_24px else R.drawable.like_24px)
 
         holder.deleteButton.visibility = if (post.userId == currentUser) View.VISIBLE else View.GONE
 
         loadComments(post.postId, holder)
+        loadAverageRating(post, holder)
 
         holder.likeButton.setOnClickListener { toggleLike(post, currentUser, holder) }
         holder.commentButton.setOnClickListener {
@@ -83,8 +87,61 @@ class PostAdapter(
             }
         }
 
-        holder.deleteButton.setOnClickListener { onDeleteClick(post) }
+        holder.recyclerViewComment.scrollToPosition(0)
+
+        holder.deleteButton.setOnClickListener {
+            AlertDialog.Builder(holder.itemView.context).apply {
+                setTitle("Delete Post")
+                setMessage("Are you sure you want to delete this post?")
+                setPositiveButton("Delete") { _, _ -> onDeleteClick(post) }
+                setNegativeButton("Cancel", null)
+                show()
+            }
+        }
+
+        holder.ratingImageButton.setImageResource(if (isRated) R.drawable.star_yellow_24dp else R.drawable.star_24px)
+        holder.ratingImageButton.setOnClickListener {
+            if (holder.ratingBar.visibility == View.VISIBLE) {
+                holder.ratingBar.visibility = View.GONE
+            } else {
+                holder.ratingBar.visibility = View.VISIBLE
+                loadComments(post.postId, holder)
+            }
+        }
+        holder.ratingBar.setOnRatingBarChangeListener { _, rating, _ ->
+            saveRating(post.postId, currentUser, rating)
+        }
+
     }
+
+    private fun loadAverageRating(post: Post, holder: PostViewHolder) {
+        val ratings = post.ratings.values
+        if (ratings.isNotEmpty()) {
+            val averageRating = ratings.sum() / ratings.size
+            val ratingCount = ratings.size
+            holder.ratingCount.text = ratingCount.toString()
+            holder.ratingAverage.text = String.format("%.1f", averageRating)
+        } else {
+            holder.ratingAverage.text = "0"
+        }
+    }
+
+
+
+
+    private fun saveRating(postId: String, userId: String, rating: Float) {
+        val db = FirebaseFirestore.getInstance()
+        val postRef = db.collection("posts").document(postId)
+
+        postRef.update("ratings.$userId", rating)
+            .addOnSuccessListener {
+                println("Rating updated!")
+            }
+            .addOnFailureListener { e ->
+                println("Failed to update rating: ${e.message}")
+            }
+    }
+
 
     override fun getItemCount() = postList.size
 
@@ -115,7 +172,7 @@ class PostAdapter(
             post.likedBy = updatedLikedBy.toList()
 
             holder.likeCountText.text = post.likes.toString()
-            holder.likeButton.setImageResource(if (updatedLikedBy.contains(userId)) R.drawable.liked_24px else R.drawable.favorite_24px)
+            holder.likeButton.setImageResource(if (updatedLikedBy.contains(userId)) R.drawable.like_red_24px else R.drawable.like_24px)
         }
     }
 
