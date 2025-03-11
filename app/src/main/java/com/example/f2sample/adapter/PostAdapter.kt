@@ -93,6 +93,7 @@ class PostAdapter(
                 holder.commentSection.visibility = View.GONE
             } else {
                 holder.commentSection.visibility = View.VISIBLE
+                holder.ratingBar.visibility = View.GONE
                 loadComments(post.postId, holder)
             }
         }
@@ -112,6 +113,7 @@ class PostAdapter(
                 holder.ratingBar.visibility = View.GONE
             } else {
                 holder.ratingBar.visibility = View.VISIBLE
+                holder.commentSection.visibility = View.GONE
                 loadComments(post.postId, holder)
             }
         }
@@ -132,8 +134,6 @@ class PostAdapter(
             holder.ratingAverage.text = "0"
         }
     }
-
-
 
 
     private fun saveRating(postId: String, userId: String, rating: Float) {
@@ -243,5 +243,5 @@ private fun deletePost(post: Post) {
         .addOnFailureListener { e ->
             println("Failed to delete post: ${e.message}")
         }
-}
+    }
 }

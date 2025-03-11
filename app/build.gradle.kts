@@ -57,6 +57,10 @@ dependencies {
     implementation("com.google.firebase:firebase-bom:33.9.0")
     implementation("com.google.firebase:firebase-firestore:25.1.2")
     implementation ("com.google.firebase:firebase-storage:20.3.0")
+    implementation ("com.google.firebase:firebase-appcheck-debug:17.1.0")
+    implementation ("com.google.firebase:firebase-appcheck-playintegrity:17.0.1")  // For production
+
+
 
 
     implementation("com.google.firebase:firebase-vertexai:16.1.0")

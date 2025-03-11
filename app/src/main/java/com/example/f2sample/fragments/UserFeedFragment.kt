@@ -3,6 +3,7 @@ package com.example.f2sample.fragments
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
+import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
@@ -25,6 +26,8 @@ class UserFeedFragment : Fragment(R.layout.fragment_user_feed) {
     private val postList = mutableListOf<Post>()
     private lateinit var adapter: PostAdapter
 
+    private lateinit var blurView: View
+    private lateinit var progressBar: ProgressBar
     private lateinit var recyclerViewUserFeed: RecyclerView
     private lateinit var floatingButton: FloatingActionButton
 
@@ -36,6 +39,8 @@ class UserFeedFragment : Fragment(R.layout.fragment_user_feed) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        blurView = view.findViewById(R.id.blur_view)
+        progressBar = view.findViewById(R.id.progress_bar)
         recyclerViewUserFeed = view.findViewById(R.id.recyclerViewUserFeed)
         floatingButton = view.findViewById(R.id.floatingButton)
 
@@ -44,8 +49,10 @@ class UserFeedFragment : Fragment(R.layout.fragment_user_feed) {
         recyclerViewUserFeed.layoutManager = LinearLayoutManager(requireContext())
         recyclerViewUserFeed.adapter = adapter
 
+        showLoading()
         // Load posts
         loadPosts()
+        hideLoading()
 
         // Handle Floating Button Click
         floatingButton.setOnClickListener {
@@ -53,7 +60,20 @@ class UserFeedFragment : Fragment(R.layout.fragment_user_feed) {
         }
     }
 
+    private fun showLoading() {
+        blurView.visibility = View.VISIBLE
+        progressBar.visibility = View.VISIBLE
+        blurView.bringToFront()
+        progressBar.bringToFront()
+    }
+
+    private fun hideLoading() {
+        blurView.visibility = View.GONE
+        progressBar.visibility = View.GONE
+    }
+
     private fun uploadImage(uri: Uri) {
+        showLoading()
         val fileRef = storage.reference.child("images/${UUID.randomUUID()}.jpg")
 
         fileRef.putFile(uri)
@@ -63,6 +83,7 @@ class UserFeedFragment : Fragment(R.layout.fragment_user_feed) {
                 }
             }
             .addOnFailureListener {
+                hideLoading()
                 Toast.makeText(requireContext(), "Failed to upload image", Toast.LENGTH_SHORT).show()
             }
     }
@@ -81,9 +102,12 @@ class UserFeedFragment : Fragment(R.layout.fragment_user_feed) {
 
         postRef.set(post)
             .addOnSuccessListener {
+                hideLoading()
+
                 Toast.makeText(requireContext(), "Post uploaded!", Toast.LENGTH_SHORT).show()
             }
             .addOnFailureListener {
+                hideLoading()
                 Toast.makeText(requireContext(), "Failed to save post", Toast.LENGTH_SHORT).show()
             }
     }
@@ -94,6 +118,7 @@ class UserFeedFragment : Fragment(R.layout.fragment_user_feed) {
                 postList.clear()
                 value?.toObjects(Post::class.java)?.let {
                     postList.addAll(it)
+                    postList.shuffle()
                     adapter.notifyDataSetChanged()
                 }
             }
