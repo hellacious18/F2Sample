@@ -161,26 +161,50 @@ class PostAdapter(
     }
 
     private fun toggleLike(post: Post, userId: String, holder: PostViewHolder) {
+        // Update UI immediately
+        val isLiked = post.likedBy.contains(userId)
+        val updatedLikedBy = if (isLiked) {
+            post.likedBy - userId
+        } else {
+            post.likedBy + userId
+        }
+        
+        // Update local post object
+        post.likedBy = updatedLikedBy
+        post.likes = updatedLikedBy.size
+        
+        // Update UI
+        holder.likeCountText.text = post.likes.toString()
+        holder.likeButton.setImageResource(
+            if (!isLiked) R.drawable.like_red_24px else R.drawable.like_24px
+        )
+    
+        // Update Firestore
         val db = FirebaseFirestore.getInstance()
         val postRef = db.collection("posts").document(post.postId)
-
-        val updatedLikedBy = post.likedBy.toMutableSet().apply {
-            if (contains(userId)) remove(userId) else add(userId)
-        }.toList()
-
-        val updatedLikes = updatedLikedBy.size
-
+        
         postRef.update(mapOf(
-            "likes" to updatedLikes,
+            "likes" to post.likes,
             "likedBy" to updatedLikedBy
         ))
-            .addOnSuccessListener {
-            post.likes = updatedLikes
-            post.likedBy = updatedLikedBy.toList()
+    }
 
-            holder.likeCountText.text = post.likes.toString()
-            holder.likeButton.setImageResource(if (updatedLikedBy.contains(userId)) R.drawable.like_red_24px else R.drawable.like_24px)
-        }
+    private fun addComment(postId: String, commentText: String, holder: PostViewHolder) {
+        val db = FirebaseFirestore.getInstance()
+        val commentRef = db.collection("posts").document(postId).collection("comments").document()
+    
+        val comment = Comment(
+            userId = auth.currentUser?.uid ?: "",
+            userName = auth.currentUser?.displayName ?: "Anonymous",
+            userProfileImageUrl = auth.currentUser?.photoUrl.toString(),
+            commentText = commentText,
+            timestamp = System.currentTimeMillis()
+        )
+    
+        // Update UI immediately
+        holder.editTextComment.text.clear()
+    
+        commentRef.set(comment)
     }
 
     private fun loadComments(postId: String, holder: PostViewHolder) {
@@ -198,25 +222,6 @@ class PostAdapter(
 
                 holder.recyclerViewComment.layoutManager = LinearLayoutManager(holder.itemView.context)
                 holder.recyclerViewComment.adapter = commentAdapter
-            }
-    }
-
-
-    private fun addComment(postId: String, commentText: String, holder: PostViewHolder) {
-        val db = FirebaseFirestore.getInstance()
-        val commentRef = db.collection("posts").document(postId).collection("comments").document()
-
-        val comment = Comment(
-            userId = auth.currentUser?.uid ?: "",
-            userName = auth.currentUser?.displayName ?: "Anonymous",
-            userProfileImageUrl = auth.currentUser?.photoUrl.toString(),
-            commentText = commentText,
-            timestamp = System.currentTimeMillis()
-        )
-
-        commentRef.set(comment)
-            .addOnSuccessListener {
-                loadComments(postId, holder) // Refresh comments
             }
     }
 

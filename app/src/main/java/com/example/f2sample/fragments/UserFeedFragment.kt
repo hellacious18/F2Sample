@@ -14,6 +14,7 @@ import com.example.f2sample.adapter.PostAdapter
 import com.example.f2sample.data.Post
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import java.util.*
@@ -115,11 +116,30 @@ class UserFeedFragment : Fragment(R.layout.fragment_user_feed) {
     private fun loadPosts() {
         db.collection("posts")
             .addSnapshotListener { value, _ ->
-                postList.clear()
-                value?.toObjects(Post::class.java)?.let {
-                    postList.addAll(it)
-                    postList.shuffle()
-                    adapter.notifyDataSetChanged()
+                value?.documentChanges?.forEach { change ->
+                    val post = change.document.toObject(Post::class.java)
+                    when (change.type) {
+                        DocumentChange.Type.ADDED -> {
+                            if (!postList.any { it.postId == post.postId }) {
+                                postList.add(0, post)
+                                adapter.notifyItemInserted(0)
+                            }
+                        }
+                        DocumentChange.Type.MODIFIED -> {
+                            val index = postList.indexOfFirst { it.postId == post.postId }
+                            if (index != -1) {
+                                postList[index] = post
+                                adapter.notifyItemChanged(index)
+                            }
+                        }
+                        DocumentChange.Type.REMOVED -> {
+                            val index = postList.indexOfFirst { it.postId == post.postId }
+                            if (index != -1) {
+                                postList.removeAt(index)
+                                adapter.notifyItemRemoved(index)
+                            }
+                        }
+                    }
                 }
             }
     }
