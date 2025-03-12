@@ -3,7 +3,7 @@
 
     <item
         android:id="@+id/action_delete_post"
-        android:title="Delete Post"
+        android:title="Delete"
         android:icon="@drawable/delete_24px"/>
 
 </menu>

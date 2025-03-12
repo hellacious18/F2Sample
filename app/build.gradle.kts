@@ -59,6 +59,8 @@ dependencies {
     implementation ("com.google.firebase:firebase-storage:20.3.0")
     implementation ("com.google.firebase:firebase-appcheck-debug:17.1.0")
     implementation ("com.google.firebase:firebase-appcheck-playintegrity:17.0.1")  // For production
+    implementation("com.google.ai.client.generativeai:generativeai:0.1.1")
+    implementation ("com.google.firebase:firebase-ml-vision:24.0.3")
 
 
 
@@ -73,7 +75,5 @@ dependencies {
 
     implementation ("com.squareup.okhttp3:okhttp:4.9.0")
     implementation ("com.github.bumptech.glide:glide:4.16.0")
-
-
 
 }
