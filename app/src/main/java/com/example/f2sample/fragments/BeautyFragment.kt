@@ -29,8 +29,8 @@ import java.io.ByteArrayOutputStream
 class BeautyFragment : Fragment() {
 
     private lateinit var inputField: EditText
-    private lateinit var sendButton: Button
-    private lateinit var uploadButton: Button
+    private lateinit var sendButton: ImageButton
+    private lateinit var uploadButton: ImageButton
     private lateinit var imageView: ImageView
     private lateinit var recyclerView: RecyclerView
     private lateinit var chatAdapter: ChatAdapter
@@ -38,12 +38,15 @@ class BeautyFragment : Fragment() {
     private val PICK_IMAGE_REQUEST = 1
     private var imageBitmap: Bitmap? = null
 
+    // Maintain local conversation history for context memory.
+    private val conversationHistory = mutableListOf<Message>()
+
     // Firebase services
     private val db = FirebaseFirestore.getInstance()
     private val storage = FirebaseStorage.getInstance()
     // Using gemini-2.0-flash model; adjust as needed.
     private val generativeModel = Firebase.vertexAI.generativeModel("gemini-2.0-flash")
-    // Save chats using the current user's email (or a default if not available)
+    // Save chats using the current user's email (or default)
     private val userId = FirebaseAuth.getInstance().currentUser?.email ?: "guest@example.com"
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -83,18 +86,17 @@ class BeautyFragment : Fragment() {
     }
 
     private fun sendMessage() {
-        // Get the user input. If empty but image is provided, default to "Analyze image".
+        // Get user input; if empty but image is provided, default to "Analyze image".
         var userMessage = inputField.text.toString().trim()
         if (userMessage.isEmpty() && imageBitmap == null) return
         if (userMessage.isEmpty() && imageBitmap != null) {
             userMessage = "Analyze image"
         }
-
         inputField.text.clear()
 
-        // If an image is present, upload it first
+        // Save user message in Firestore (and update local conversation history)
         if (imageBitmap != null) {
-            // Save the image message first so it shows in the chat
+            // Upload image first
             uploadImageToFirebaseStorage { uploadedImageUrl ->
                 val imageMessage = Message(
                     text = "Analyze image", // Default caption if no text provided
@@ -102,26 +104,29 @@ class BeautyFragment : Fragment() {
                     isUser = true
                 )
                 saveMessageToFirestore(imageMessage)
-                // Also, if user typed text (other than default), save it as a separate message
+                // Update local context:
+                conversationHistory.add(imageMessage)
+
                 if (userMessage != "Analyze image") {
                     val textMessage = Message(
                         text = userMessage,
                         isUser = true
                     )
                     saveMessageToFirestore(textMessage)
+                    conversationHistory.add(textMessage)
                 }
-                // Now get AI response using the image and the user message
+                // Now, include context when getting AI response
                 getAIResponse(userMessage, imageBitmap)
                 imageBitmap = null
                 imageView.setImageBitmap(null)
             }
         } else {
-            // No image; simply send the text and get AI response
             val textMessage = Message(
                 text = userMessage,
                 isUser = true
             )
             saveMessageToFirestore(textMessage)
+            conversationHistory.add(textMessage)
             getAIResponse(userMessage, null)
         }
     }
@@ -129,17 +134,33 @@ class BeautyFragment : Fragment() {
     private fun getAIResponse(userMessage: String, promptBitmap: Bitmap?) {
         lifecycleScope.launch {
             try {
+                // Build a context string from recent messages (if available)
+                val contextString = conversationHistory.takeLast(10).joinToString(separator = "\n") { msg ->
+                    if (msg.isUser) "User: ${msg.text}" else "AI: ${msg.text}"
+                }
+
+                // Define default instructions for the AI
+                val instructions = "Please analyze the facial features of the human in detail and recommend ways to enhance them. If the user asks, provide skincare routine and product suggestions based on the skin analysis. If you cannot detect a human face in the image, kindly ask the user to send another picture."
+
+                // Build the full prompt by combining context, the user message, and the instructions.
+                // If there is no context, it will still send the instructions.
+                val fullPromptText = if (contextString.isNotEmpty()) {
+                    "$contextString\nUser: $userMessage\nInstructions: $instructions"
+                } else {
+                    "User: $userMessage\nInstructions: $instructions"
+                }
+
+                // Create the prompt using the content block. If an image is provided, include it.
                 val prompt = content {
                     promptBitmap?.let { image(it) }
-                    // Use default text if userMessage is empty (shouldn't happen now)
-                    text(userMessage.ifEmpty { "Analyze facial features & give details:" })
+                    text(fullPromptText)
                 }
 
                 val responseBuilder = StringBuilder()
                 generativeModel.generateContentStream(prompt).collect { chunk ->
                     chunk.text?.let {
                         responseBuilder.append(it)
-                        // Optionally update UI as streaming response
+                        // Optionally update UI with streaming response
                         val streamingMessage = Message(
                             text = responseBuilder.toString(),
                             isUser = false
@@ -147,16 +168,19 @@ class BeautyFragment : Fragment() {
                         updateChatUI(listOf(streamingMessage))
                     }
                 }
+
                 val finalMessage = Message(
                     text = responseBuilder.toString(),
                     isUser = false
                 )
                 saveMessageToFirestore(finalMessage)
+                conversationHistory.add(finalMessage)
             } catch (e: Exception) {
                 e.printStackTrace()
             }
         }
     }
+
 
     private fun uploadImageToFirebaseStorage(callback: (String) -> Unit) {
         val storageRef = storage.reference.child("images/${System.currentTimeMillis()}.jpg")
@@ -201,6 +225,9 @@ class BeautyFragment : Fragment() {
                 val messages = snapshot?.documents?.map { doc ->
                     doc.toObject(Message::class.java)!!
                 } ?: emptyList()
+                // Update local conversation history as well
+                conversationHistory.clear()
+                conversationHistory.addAll(messages)
                 updateChatUI(messages)
             }
     }
