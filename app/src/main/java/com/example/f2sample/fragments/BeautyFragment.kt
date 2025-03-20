@@ -26,7 +26,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
 
-class BeautyFragment : Fragment() {
+class BeautyFragment : Fragment(R.layout.fragment_beauty) {
 
     private lateinit var inputField: EditText
     private lateinit var sendButton: ImageButton
@@ -59,7 +59,7 @@ class BeautyFragment : Fragment() {
         recyclerView = view.findViewById(R.id.recylerViewBeautyFragment)
 
         chatAdapter = ChatAdapter(emptyList())
-        recyclerView.layoutManager = LinearLayoutManager(requireContext())
+        recyclerView.layoutManager = LinearLayoutManager(context)
         recyclerView.adapter = chatAdapter
 
         sendButton.setOnClickListener { sendMessage() }
@@ -234,7 +234,7 @@ class BeautyFragment : Fragment() {
 
     private fun updateChatUI(messages: List<Message>) {
         chatAdapter = ChatAdapter(messages)
-        recyclerView.layoutManager = LinearLayoutManager(requireContext())
+        recyclerView.layoutManager = LinearLayoutManager(context)
         recyclerView.adapter = chatAdapter
         recyclerView.scrollToPosition(messages.size - 1)
     }

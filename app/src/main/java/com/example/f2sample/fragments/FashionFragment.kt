@@ -66,7 +66,7 @@ class FashionFragment : Fragment(R.layout.fragment_fashion) {
         imageButton = view.findViewById(R.id.imageButton)
 
         chatAdapter = ChatAdapter(messages)
-        chatRecyclerView.layoutManager = LinearLayoutManager(requireContext())
+        chatRecyclerView.layoutManager = LinearLayoutManager(context)
         chatRecyclerView.adapter = chatAdapter
 
         // Listen for new messages in real-time

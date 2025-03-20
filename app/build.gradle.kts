@@ -62,10 +62,10 @@ dependencies {
     implementation("com.google.ai.client.generativeai:generativeai:0.1.1")
     implementation ("com.google.firebase:firebase-ml-vision:24.0.3")
 
-
-
-
     implementation("com.google.firebase:firebase-vertexai:16.1.0")
+
+    implementation("com.google.android.gms:play-services-wallet:19.4.0")
+
 
     implementation ("com.github.bumptech.glide:glide:4.16.0")
     annotationProcessor ("com.github.bumptech.glide:compiler:4.16.0")
@@ -75,5 +75,8 @@ dependencies {
 
     implementation ("com.squareup.okhttp3:okhttp:4.9.0")
     implementation ("com.github.bumptech.glide:glide:4.16.0")
+
+    implementation ("com.stripe:stripe-android:20.27.1")
+
 
 }
