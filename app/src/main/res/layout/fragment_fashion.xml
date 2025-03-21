@@ -1,47 +1,54 @@
 <?xml version="1.0" encoding="utf-8"?>
- <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="20dp"
-    android:orientation="vertical">
+    android:id="@+id/chatView"
+    android:orientation="vertical"
+    android:padding="16dp">
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/chatRecyclerView"
+        android:id="@+id/recyclerViewFashionFragmentF"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:layout_weight="1"
         android:scrollbars="vertical"/>
-
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_gravity="center"
-        android:padding="8dp">
+        android:gravity="center"
+        android:orientation="horizontal">
 
         <EditText
-            android:id="@+id/inputMessage"
+            android:id="@+id/inputFieldF"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:hint="Type a message"
-            android:padding="8dp"/>
+            android:hint="Type a message"/>
+
+        <ImageView
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:scaleType="fitXY"
+            android:padding="5dp"
+            android:id="@+id/imageViewF"/>
 
         <ImageButton
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="8dp"
-            android:id="@+id/imageButton"
-            android:background="@drawable/add_photo_alternate_24px"/>
+            android:id="@+id/uploadButtonF"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:padding="5dp"
+            android:background="@drawable/add_photo_alternate_24px"
+            android:text="Upload Image"/>
 
         <ImageButton
-            android:id="@+id/sendButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="8dp"
-            android:background="@drawable/send_24px"/>
+            android:id="@+id/sendButtonF"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:padding="5dp"
+            android:background="@drawable/send_24px"
+            android:text="Send"/>
     </LinearLayout>
+
 </LinearLayout>

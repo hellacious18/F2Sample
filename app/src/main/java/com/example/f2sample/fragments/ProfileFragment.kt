@@ -11,6 +11,7 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
 import com.example.f2sample.AboutMeActivity
+import com.example.f2sample.AdminActivity
 import com.example.f2sample.MainActivity
 import com.example.f2sample.PaymentActivity
 import com.example.f2sample.adapter.ProfileAdapter
@@ -52,6 +53,7 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
             ProfileItem(R.drawable.ar_on_you_24px, "Facial Features"),
             ProfileItem(R.drawable.accessibility_new_24px, "Body Measurements"),
             ProfileItem(R.drawable.redeem_subscription_24px, "Subscription"),
+            ProfileItem(R.drawable.person_24px, "Admin Panel"),
             ProfileItem(R.drawable.settings_24px, "Settings"),
             ProfileItem(R.drawable.logout_24px, "Logout")
         )
@@ -65,8 +67,9 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
                 1 -> Toast.makeText(context, "Face Details Clicked", Toast.LENGTH_SHORT).show()
                 2 -> Toast.makeText(context, "Body Proportions Clicked", Toast.LENGTH_SHORT).show()
                 3 -> {startActivity(Intent(context, PaymentActivity::class.java))}
-                4 -> Toast.makeText(context, "Settings Clicked", Toast.LENGTH_SHORT).show()
-                5 -> logout()
+                4 -> {startActivity(Intent(context, AdminActivity::class.java))}
+                5 -> Toast.makeText(context, "Settings Clicked", Toast.LENGTH_SHORT).show()
+                6 -> logout()
             }
         }
 

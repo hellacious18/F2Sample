@@ -137,7 +137,7 @@ class AboutMeActivity : AppCompatActivity() {
                 .circleCrop()
                 .into(profileImage)
 
-            val emailKey = user.email?.replace(".", "_") ?: "No_Email"
+            val emailKey = user.email?:"No_Email"
             val userDocRef = firestore.collection("users").document(emailKey)
 
             userDocRef.get().addOnSuccessListener { document ->
@@ -212,7 +212,7 @@ class AboutMeActivity : AppCompatActivity() {
     private fun saveUserDetails() {
         val user = auth.currentUser
         if (user != null) {
-            val emailKey = user.email?.replace(".", "_") ?: "No_Email"
+            val emailKey = user.email?: "No_Email"
 
             val userDetails = hashMapOf(
                 "name" to name.text.toString(),

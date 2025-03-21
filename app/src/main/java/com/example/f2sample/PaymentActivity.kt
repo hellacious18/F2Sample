@@ -2,48 +2,53 @@ package com.example.f2sample
 
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import com.stripe.android.ApiResultCallback
-import com.stripe.android.PaymentConfiguration
-import com.stripe.android.Stripe
-import com.stripe.android.model.CardParams
-import com.stripe.android.model.Token
+import com.razorpay.Checkout
+import com.razorpay.PaymentResultListener
+import org.json.JSONObject
 
-class PaymentActivity : AppCompatActivity() {
-
-        private lateinit var stripe: Stripe
-        private val publishableKey = "pk_test_51R4gG7BFXrlh50H3nLigd1VSxR8Wo1t1d0ZlcTMxmgBnEAJZxofHRxQIpM9ZIpdyNRjSkQJTi2FkI3EBpSfuLqR200GDCmbLqB"
+class PaymentActivity : AppCompatActivity(), PaymentResultListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_payment)
 
-        PaymentConfiguration.init(applicationContext, publishableKey)
+        // Initialize Razorpay Checkout
+        Checkout.preload(applicationContext)
 
-        stripe = Stripe(this, publishableKey)
-        createTestToken()
+        startPayment() // Start payment process
     }
 
-    private fun createTestToken() {
-        val cardParams = CardParams(
-            "4242424242424242", // Test Visa card
-            12, 2025, // Expiry Month & Year
-            "123" // CVV
-        )
+    private fun startPayment() {
+        val checkout = Checkout()
+        checkout.setKeyID("rzp_test_9PD465v1tKJruT")
 
-        stripe.createCardToken(cardParams, callback = object : ApiResultCallback<Token> {
-            override fun onSuccess(result: Token) {
-                Log.d("StripeToken", "Token: ${result.id}")
-            }
+        try {
+            val options = JSONObject()
+            options.put("name", "User1")
+            options.put("description", "Test Payment")
+            options.put("currency", "INR")
+            options.put("amount", "10000") // Amount in paise (10000 = ₹100)
+            options.put("prefill.email", "test@example.com")
+            options.put("prefill.contact", "9876543210")
 
-            override fun onError(e: Exception) {
-                Log.e("StripeToken", "Error: ${e.localizedMessage}")
-            }
-        })
+            checkout.open(this, options)
 
+        } catch (e: Exception) {
+            Log.e("Razorpay", "Error: ${e.localizedMessage}")
+            Toast.makeText(this, "Error in Payment: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    override fun onPaymentSuccess(razorpayPaymentID: String?) {
+        Log.e("razorpayPaymentID", "onPaymentSuccess: $razorpayPaymentID")
+        Toast.makeText(this, "Payment Successful: $razorpayPaymentID", Toast.LENGTH_SHORT).show()
+    }
+
+    override fun onPaymentError(code: Int, response: String?) {
+        Toast.makeText(this, "Payment Failed: $response", Toast.LENGTH_SHORT).show()
     }
 }

@@ -202,7 +202,7 @@ class BeautyFragment : Fragment(R.layout.fragment_beauty) {
     private fun saveMessageToFirestore(message: Message) {
         db.collection("users")
             .document(userId)
-            .collection("chats")
+            .collection("beauty_chats")
             .add(message)
             .addOnSuccessListener {
                 println("Message saved successfully!")
@@ -215,7 +215,7 @@ class BeautyFragment : Fragment(R.layout.fragment_beauty) {
     private fun listenForMessages() {
         db.collection("users")
             .document(userId)
-            .collection("chats")
+            .collection("beauty_chats")
             .orderBy("timestamp")
             .addSnapshotListener { snapshot, e ->
                 if (e != null) {

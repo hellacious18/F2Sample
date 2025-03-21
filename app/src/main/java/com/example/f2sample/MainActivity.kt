@@ -88,7 +88,8 @@ class MainActivity : AppCompatActivity() {
 
                     val name = user?.displayName ?: "No Name"
                     val email = user?.email ?: "No Email"
-                    val emailKey = user?.email?.replace(".", "_") ?: "No_Email"
+                    val emailKey = email
+//                    val emailKey = user?.email?.replace(".", "_") ?: "No_Email"
 
                     // Save to Firestore under users -> user1 -> info
                     val firestore = FirebaseFirestore.getInstance()

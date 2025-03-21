@@ -2,272 +2,223 @@ package com.example.f2sample.fragments
 
 import android.app.Activity
 import android.content.Intent
-import android.net.Uri
+import android.graphics.Bitmap
 import android.os.Bundle
-import android.util.Log
+import android.provider.MediaStore
+import android.view.LayoutInflater
 import android.view.View
-import android.widget.EditText
-import android.widget.ImageButton
+import android.view.ViewGroup
+import android.widget.*
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.f2sample.R
 import com.example.f2sample.adapter.ChatAdapter
 import com.example.f2sample.data.Message
-import com.example.f2sample.R
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.vertexai.vertexAI
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import com.google.firebase.vertexai.type.content
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import java.io.ByteArrayOutputStream
 
 class FashionFragment : Fragment(R.layout.fragment_fashion) {
 
-    private val generativeModel = Firebase.vertexAI.generativeModel("gemini-1.5-flash-001")
-    private val firestore = FirebaseFirestore.getInstance()
-
-    private lateinit var chatRecyclerView: RecyclerView
-    private lateinit var chatAdapter: ChatAdapter
-    private lateinit var inputMessage: EditText
+    private lateinit var inputField: EditText
     private lateinit var sendButton: ImageButton
-    private lateinit var imageButton: ImageButton
-
-    private val messages = mutableListOf<Message>()
+    private lateinit var uploadButton: ImageButton
+    private lateinit var imageView: ImageView
+    private lateinit var recyclerView: RecyclerView
+    private lateinit var chatAdapter: ChatAdapter
 
     private val PICK_IMAGE_REQUEST = 1
+    private var imageBitmap: Bitmap? = null
 
-    private val maxMessages = 5
-    private val chatContext = StringBuilder()
+    private val conversationHistory = mutableListOf<Message>()
 
-    private lateinit var userId: String
-    private lateinit var chatId: String
-    private var chatListener: ListenerRegistration? = null
+    private val db = FirebaseFirestore.getInstance()
+    private val storage = FirebaseStorage.getInstance()
+    private val generativeModel = Firebase.vertexAI.generativeModel("gemini-2.0-flash")
+    private val userId = FirebaseAuth.getInstance().currentUser?.email ?: "guest@example.com"
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        val view = inflater.inflate(R.layout.fragment_fashion, container, false)
 
-        val currentUser = FirebaseAuth.getInstance().currentUser
-        userId = currentUser?.email?.replace(".", "_") ?: "guest"
+        inputField = view.findViewById(R.id.inputFieldF)
+        sendButton = view.findViewById(R.id.sendButtonF)
+        uploadButton = view.findViewById(R.id.uploadButtonF)
+        imageView = view.findViewById(R.id.imageViewF)
+        recyclerView = view.findViewById(R.id.recyclerViewFashionFragmentF)
 
+        chatAdapter = ChatAdapter(emptyList())
+        recyclerView.layoutManager = LinearLayoutManager(context)
+        recyclerView.adapter = chatAdapter
 
-//        val currentTime = System.currentTimeMillis()
-//        val dateFormat = SimpleDateFormat("yyyyMMdd_HHmm", Locale.getDefault())
-//        val formattedTime = dateFormat.format(Date(currentTime))
-        // Generate the chatId with the formatted time (hour & minute)
+        sendButton.setOnClickListener { sendMessage() }
+        uploadButton.setOnClickListener { pickImageFromGallery() }
 
-        chatId = "${userId}_fashionChat"
-
-        chatRecyclerView = view.findViewById(R.id.chatRecyclerView)
-        inputMessage = view.findViewById(R.id.inputMessage)
-        sendButton = view.findViewById(R.id.sendButton)
-        imageButton = view.findViewById(R.id.imageButton)
-
-        chatAdapter = ChatAdapter(messages)
-        chatRecyclerView.layoutManager = LinearLayoutManager(context)
-        chatRecyclerView.adapter = chatAdapter
-
-        // Listen for new messages in real-time
-        startChatListener()
-
-        imageButton.setOnClickListener{
-            openImagePicker()
-        }
-
-        sendButton.setOnClickListener {
-            val userInput = inputMessage.text.toString().trim()
-            if (userInput.isNotEmpty()) {
-                sendMessage(userInput)
-                inputMessage.text.clear()
-            }
-        }
-
+        listenForMessages()
+        return view
     }
-    private fun openImagePicker() {
-        val intent = Intent(Intent.ACTION_PICK)
-        intent.type = "image/*"
+
+    private fun pickImageFromGallery() {
+        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
         startActivityForResult(intent, PICK_IMAGE_REQUEST)
-    }
-
-    private fun startChatListener() {
-        // Real-time listener for Firestore updates
-        chatListener = firestore.collection("users").document(userId)
-            .collection("chats").document(chatId)
-            .collection("messages")
-            .orderBy("timestamp")
-            .addSnapshotListener { snapshot, e ->
-                if (e != null) {
-                    Log.w("FashionFragment", "Listen failed.", e)
-                    return@addSnapshotListener
-                }
-
-                if (snapshot != null && !snapshot.isEmpty) {
-                    messages.clear() // Clear existing messages before adding updated ones
-                    for (doc in snapshot.documents) {
-                        val message = doc.getString("message") ?: ""
-                        val isUser = doc.getBoolean("isUser") ?: false
-                        messages.add(Message(message, isUser))
-
-                        // Update chat context dynamically
-                        if (isUser) {
-                            chatContext.append("User: $message\n")
-                        } else {
-                            chatContext.append("AI: $message\n")
-                        }
-                    }
-                    // Ensure the message list is not too large
-                    if (messages.size > maxMessages) {
-                        messages.removeAt(0)
-                    }
-
-                    chatAdapter.notifyDataSetChanged()
-                    chatRecyclerView.scrollToPosition(messages.size - 1)
-                }
-            }
-    }
-
-    private fun saveMessageToFirestore(message: String, isUser: Boolean, imageUrl: String? = null) {
-        val chatMessage = hashMapOf(
-            "message" to message,
-            "isUser" to isUser,
-            "imageUrl" to imageUrl,
-            "timestamp" to System.currentTimeMillis()
-        )
-
-        firestore.collection("users").document(userId)
-            .collection("chats").document(chatId)
-            .collection("messages")
-            .add(chatMessage)
-            .addOnSuccessListener {
-                Log.d("FashionFragment", "Message saved successfully!")
-            }
-            .addOnFailureListener { e ->
-                Log.e("FashionFragment", "Error saving message: ${e.message}")
-            }
-    }
-
-    private fun sendMessage(prompt: String) {
-        messages.add(Message(prompt, isUser = true))
-        chatAdapter.notifyItemInserted(messages.size - 1)
-        chatRecyclerView.scrollToPosition(messages.size - 1)
-        saveMessageToFirestore(prompt, true)
-
-        // Update chat context with the new user message
-        chatContext.append("User: $prompt\n")
-
-        // Ensure the context size does not exceed the limit
-        if (messages.size > maxMessages) {
-            messages.removeAt(0)
-        }
-
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val aiPrompt = getLimitedContext() + "\nAI:"
-                val response = generativeModel.generateContent(aiPrompt)
-                val aiResponse = response.text ?: "No response from AI"
-                Log.d("FashionFragment", "AI Response: $aiResponse")
-
-                launch(Dispatchers.Main) {
-                    messages.add(Message(aiResponse, isUser = false))
-                    chatAdapter.notifyItemInserted(messages.size - 1)
-                    chatRecyclerView.scrollToPosition(messages.size - 1)
-                    saveMessageToFirestore(aiResponse, false)
-
-                    chatContext.append("AI: $aiResponse\n")
-
-                    // Maintain context size limit
-                    if (messages.size > maxMessages) {
-                        messages.removeAt(0)
-                    }
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                Log.e("FashionFragment", "Error: ${e.message}")
-            }
-        }
-    }
-
-    private fun getLimitedContext(): String {
-        // Get the most recent 'maxMessages' messages
-        return messages.takeLast(maxMessages).joinToString("\n") {
-            "${if (it.isUser) "User" else "AI"}: ${it.text}"
-        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == Activity.RESULT_OK && data != null) {
-            val imageUri: Uri = data.data!!
-
-            val storageReference = FirebaseStorage.getInstance().reference
-            val imageRef = storageReference.child("chat_images/${System.currentTimeMillis()}.jpg")
-
-            imageRef.putFile(imageUri)
-                .addOnSuccessListener {
-                    imageRef.downloadUrl.addOnSuccessListener { uri ->
-                        // Get the image URL and send it as part of the message
-                        val imageUrl = uri.toString()
-                        sendMessageWithImage(imageUrl)
-                    }
-                }
-                .addOnFailureListener {
-                    Log.e("FashionFragment", "Error uploading image: ${it.message}")
-                }
+            val imageUri = data.data
+            val bitmap = MediaStore.Images.Media.getBitmap(requireActivity().contentResolver, imageUri)
+            imageView.setImageBitmap(bitmap)
+            imageBitmap = bitmap
         }
     }
 
-    private fun sendMessageWithImage(imageUrl: String) {
-        val prompt = "Check out this image!"
-        val message = Message(prompt, isUser = true, imageUrl = imageUrl)
-
-        messages.add(message)
-        chatAdapter.notifyItemInserted(messages.size - 1)
-        chatRecyclerView.scrollToPosition(messages.size - 1)
-        saveMessageToFirestore(prompt, true, imageUrl)
-
-        chatContext.append("User: $prompt\n")
-
-        // Ensure the context size does not exceed the limit
-        if (messages.size > maxMessages) {
-            messages.removeAt(0)
+    private fun sendMessage() {
+        var userMessage = inputField.text.toString().trim()
+        if (userMessage.isEmpty() && imageBitmap == null) return
+        if (userMessage.isEmpty() && imageBitmap != null) {
+            userMessage = "Analyze outfit"
         }
+        inputField.text.clear()
 
-        // Generate AI response
-        CoroutineScope(Dispatchers.IO).launch {
+        if (imageBitmap != null) {
+            uploadImageToFirebaseStorage { uploadedImageUrl ->
+                val imageMessage = Message(
+                    text = "Analyze outfit",
+                    imageUrl = uploadedImageUrl,
+                    isUser = true
+                )
+                saveMessageToFirestore(imageMessage)
+                conversationHistory.add(imageMessage)
+
+                if (userMessage != "Analyze outfit") {
+                    val textMessage = Message(
+                        text = userMessage,
+                        isUser = true
+                    )
+                    saveMessageToFirestore(textMessage)
+                    conversationHistory.add(textMessage)
+                }
+                getAIResponse(userMessage, imageBitmap)
+                imageBitmap = null
+                imageView.setImageBitmap(null)
+            }
+        } else {
+            val textMessage = Message(
+                text = userMessage,
+                isUser = true
+            )
+            saveMessageToFirestore(textMessage)
+            conversationHistory.add(textMessage)
+            getAIResponse(userMessage, null)
+        }
+    }
+
+    private fun getAIResponse(userMessage: String, promptBitmap: Bitmap?) {
+        lifecycleScope.launch {
             try {
-                val aiPrompt = getLimitedContext() + "\nAI:"
-                val response = generativeModel.generateContent(aiPrompt)
-                val aiResponse = response.text ?: "No response from AI"
-                Log.d("FashionFragment", "AI Response: $aiResponse")
+                val contextString = conversationHistory.takeLast(10).joinToString(separator = "\n") { msg ->
+                    if (msg.isUser) "User: ${msg.text}" else "AI: ${msg.text}"
+                }
 
-                launch(Dispatchers.Main) {
-                    messages.add(Message(aiResponse, isUser = false))
-                    chatAdapter.notifyItemInserted(messages.size - 1)
-                    chatRecyclerView.scrollToPosition(messages.size - 1)
-                    saveMessageToFirestore(aiResponse, false)
+                val instructions = "Analyze the outfit in the image and provide fashion recommendations. Suggest suitable styles, colors, and accessories based on body shape. If no human body is detected, ask for a clearer image."
 
-                    chatContext.append("AI: $aiResponse\n")
+                val fullPromptText = if (contextString.isNotEmpty()) {
+                    "$contextString\nUser: $userMessage\nInstructions: $instructions"
+                } else {
+                    "User: $userMessage\nInstructions: $instructions"
+                }
 
-                    // Maintain context size limit
-                    if (messages.size > maxMessages) {
-                        messages.removeAt(0)
+                val prompt = content {
+                    promptBitmap?.let { image(it) }
+                    text(fullPromptText)
+                }
+
+                val responseBuilder = StringBuilder()
+                generativeModel.generateContentStream(prompt).collect { chunk ->
+                    chunk.text?.let {
+                        responseBuilder.append(it)
+                        val streamingMessage = Message(
+                            text = responseBuilder.toString(),
+                            isUser = false
+                        )
+                        updateChatUI(listOf(streamingMessage))
                     }
                 }
+
+                val finalMessage = Message(
+                    text = responseBuilder.toString(),
+                    isUser = false
+                )
+                saveMessageToFirestore(finalMessage)
+                conversationHistory.add(finalMessage)
             } catch (e: Exception) {
                 e.printStackTrace()
-                Log.e("FashionFragment", "Error: ${e.message}")
             }
         }
     }
 
+    private fun uploadImageToFirebaseStorage(callback: (String) -> Unit) {
+        val storageRef = storage.reference.child("fashion_images/${System.currentTimeMillis()}.jpg")
+        val baos = ByteArrayOutputStream()
+        imageBitmap?.compress(Bitmap.CompressFormat.JPEG, 90, baos)
+        val data = baos.toByteArray()
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        chatListener?.remove()
+        storageRef.putBytes(data)
+            .addOnSuccessListener {
+                storageRef.downloadUrl.addOnSuccessListener { uri ->
+                    callback(uri.toString())
+                }
+            }
+            .addOnFailureListener { e ->
+                e.printStackTrace()
+            }
     }
 
-}
+    private fun saveMessageToFirestore(message: Message) {
+        db.collection("users")
+            .document(userId)
+            .collection("fashion_chats")
+            .add(message)
+            .addOnSuccessListener {
+                println("Message saved successfully!")
+            }
+            .addOnFailureListener { e ->
+                e.printStackTrace()
+            }
+    }
 
+    private fun listenForMessages() {
+        db.collection("users")
+            .document(userId)
+            .collection("fashion_chats")
+            .orderBy("timestamp")
+            .addSnapshotListener { snapshot, e ->
+                if (e != null) {
+                    e.printStackTrace()
+                    return@addSnapshotListener
+                }
+                val messages = snapshot?.documents?.map { doc ->
+                    doc.toObject(Message::class.java)!!
+                } ?: emptyList()
+                conversationHistory.clear()
+                conversationHistory.addAll(messages)
+                updateChatUI(messages)
+            }
+    }
+
+    private fun updateChatUI(messages: List<Message>) {
+        chatAdapter = ChatAdapter(messages)
+        recyclerView.layoutManager = LinearLayoutManager(context)
+        recyclerView.adapter = chatAdapter
+        recyclerView.scrollToPosition(messages.size - 1)
+    }
+}
