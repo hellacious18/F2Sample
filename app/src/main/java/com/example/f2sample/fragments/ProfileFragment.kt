@@ -14,6 +14,7 @@ import com.example.f2sample.AboutMeActivity
 import com.example.f2sample.AdminActivity
 import com.example.f2sample.MainActivity
 import com.example.f2sample.PaymentActivity
+import com.example.f2sample.PaymentHistoryActivity
 import com.example.f2sample.adapter.ProfileAdapter
 import com.example.f2sample.R
 import com.example.f2sample.data.ProfileItem
@@ -23,6 +24,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.firebase.auth.FirebaseAuth
 import de.hdodenhof.circleimageview.CircleImageView
+import kotlin.jvm.java
 
 class ProfileFragment : Fragment(R.layout.fragment_profile) {
 
@@ -53,6 +55,7 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
             ProfileItem(R.drawable.ar_on_you_24px, "Facial Features"),
             ProfileItem(R.drawable.accessibility_new_24px, "Body Measurements"),
             ProfileItem(R.drawable.redeem_subscription_24px, "Subscription"),
+            ProfileItem(R.drawable.credit_card_clock_24px, "Payment History"),
             ProfileItem(R.drawable.person_24px, "Admin Panel"),
             ProfileItem(R.drawable.settings_24px, "Settings"),
             ProfileItem(R.drawable.logout_24px, "Logout")
@@ -67,9 +70,10 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
                 1 -> Toast.makeText(context, "Face Details Clicked", Toast.LENGTH_SHORT).show()
                 2 -> Toast.makeText(context, "Body Proportions Clicked", Toast.LENGTH_SHORT).show()
                 3 -> {startActivity(Intent(context, PaymentActivity::class.java))}
-                4 -> {startActivity(Intent(context, AdminActivity::class.java))}
-                5 -> Toast.makeText(context, "Settings Clicked", Toast.LENGTH_SHORT).show()
-                6 -> logout()
+                4 -> {startActivity(Intent(context, PaymentHistoryActivity::class.java))}
+                5 -> {startActivity(Intent(context, AdminActivity::class.java))}
+                6 -> Toast.makeText(context, "Settings Clicked", Toast.LENGTH_SHORT).show()
+                7 -> logout()
             }
         }
 

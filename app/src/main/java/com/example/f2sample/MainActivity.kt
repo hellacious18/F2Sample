@@ -89,17 +89,16 @@ class MainActivity : AppCompatActivity() {
                     val name = user?.displayName ?: "No Name"
                     val email = user?.email ?: "No Email"
                     val emailKey = email
-//                    val emailKey = user?.email?.replace(".", "_") ?: "No_Email"
 
-                    // Save to Firestore under users -> user1 -> info
                     val firestore = FirebaseFirestore.getInstance()
                     val userDetails = hashMapOf(
                         "name" to name,
-                        "email" to email
+                        "email" to email,
+                        "subscription" to "free"
                     )
 
                     firestore.collection("users").document(emailKey)
-                        .set(mapOf("info" to userDetails))
+                        .set(hashMapOf("info" to userDetails))
                         .addOnSuccessListener {
                             Log.d("UserData", "User data saved to Firestore under users -> $emailKey -> info!")
                         }
