@@ -7,7 +7,26 @@
     android:orientation="vertical"
     android:padding="16dp">
 
-    <androidx.recyclerview.widget.RecyclerView
+    <FrameLayout
+        android:id="@+id/beautyFragmentOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#80000000"
+        android:visibility="gone"
+        android:gravity="center">
+
+    <Button
+        android:id="@+id/upgradeButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Upgrade to Subscription"
+        android:layout_gravity="center"
+        android:background="@android:color/holo_blue_light"
+        android:textColor="@android:color/white"/>
+</FrameLayout>
+
+
+<androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recylerViewBeautyFragment"
         android:layout_width="match_parent"
         android:layout_height="0dp"

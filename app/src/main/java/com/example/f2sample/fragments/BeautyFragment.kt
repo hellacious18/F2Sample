@@ -13,6 +13,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.f2sample.PaymentActivity
 import com.example.f2sample.R
 import com.example.f2sample.adapter.ChatAdapter
 import com.example.f2sample.data.Message
@@ -22,7 +23,6 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.vertexai.vertexAI
 import com.google.firebase.vertexai.type.content
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
 
@@ -34,6 +34,8 @@ class BeautyFragment : Fragment(R.layout.fragment_beauty) {
     private lateinit var imageView: ImageView
     private lateinit var recyclerView: RecyclerView
     private lateinit var chatAdapter: ChatAdapter
+    private var beautyFragmentOverlay: FrameLayout? = null
+    private var upgradeButton: Button? = null
 
     private val PICK_IMAGE_REQUEST = 1
     private var imageBitmap: Bitmap? = null
@@ -57,6 +59,8 @@ class BeautyFragment : Fragment(R.layout.fragment_beauty) {
         uploadButton = view.findViewById(R.id.uploadButton)
         imageView = view.findViewById(R.id.imageView)
         recyclerView = view.findViewById(R.id.recylerViewBeautyFragment)
+        beautyFragmentOverlay = view.findViewById(R.id.beautyFragmentOverlay)
+        upgradeButton = view.findViewById(R.id.upgradeButton)
 
         chatAdapter = ChatAdapter(emptyList())
         recyclerView.layoutManager = LinearLayoutManager(context)
@@ -65,7 +69,15 @@ class BeautyFragment : Fragment(R.layout.fragment_beauty) {
         sendButton.setOnClickListener { sendMessage() }
         uploadButton.setOnClickListener { pickImageFromGallery() }
 
+        upgradeButton?.setOnClickListener {
+            // Open premium upgrade page
+            val intent = Intent(requireContext(), PaymentActivity::class.java)
+            startActivity(intent)
+        }
+
+
         listenForMessages()
+        getBeautyChatsCount()
         return view
     }
 
@@ -238,4 +250,29 @@ class BeautyFragment : Fragment(R.layout.fragment_beauty) {
         recyclerView.adapter = chatAdapter
         recyclerView.scrollToPosition(messages.size - 1)
     }
+
+    private fun getBeautyChatsCount() {
+        val userRef = db.collection("users").document(userId)
+
+        userRef.get().addOnSuccessListener { userSnapshot ->
+            val info = userSnapshot.get("info") as? Map<*, *>
+            val subscription = info?.get("subscription") as? String ?: "free"
+
+            userRef.collection("beauty_chats").get()
+                .addOnSuccessListener { snapshot ->
+                    val count = snapshot.size()
+
+                    requireActivity().runOnUiThread {
+                        if (subscription.lowercase() == "free" && count > 20) {
+                            beautyFragmentOverlay?.visibility = View.VISIBLE
+                        } else {
+                            beautyFragmentOverlay?.visibility = View.GONE
+                        }
+                    }
+                }
+                .addOnFailureListener { e -> println("Error fetching beauty_chats: ${e.message}") }
+        }.addOnFailureListener { e -> println("Error fetching user data: ${e.message}") }
+    }
+
+
 }
