@@ -7,6 +7,24 @@
     android:orientation="vertical"
     android:padding="16dp">
 
+    <FrameLayout
+        android:id="@+id/fashionFragmentOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#80000000"
+        android:visibility="gone"
+        android:gravity="center">
+
+        <Button
+            android:id="@+id/upgradeButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Upgrade to Subscription"
+            android:layout_gravity="center"
+            android:background="@android:color/holo_blue_light"
+            android:textColor="@android:color/white"/>
+    </FrameLayout>
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewFashionFragmentF"
         android:layout_width="match_parent"

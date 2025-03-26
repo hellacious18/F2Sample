@@ -137,7 +137,7 @@ class AboutMeActivity : AppCompatActivity() {
                 .circleCrop()
                 .into(profileImage)
 
-            val emailKey = user.email?:"No_Email"
+            val emailKey = user.email ?: "No_Email"
             val userDocRef = firestore.collection("users").document(emailKey)
 
             userDocRef.get().addOnSuccessListener { document ->
@@ -151,19 +151,21 @@ class AboutMeActivity : AppCompatActivity() {
                     }
 
                     if (basicDetails != null) {
-                        height = basicDetails["height"] as? String ?: ""
-                        heightUnit = basicDetails["heightUnit"] as? String ?: ""
-                        weight = basicDetails["weight"] as? String ?: ""
-                        weightUnit = basicDetails["weightUnit"] as? String ?: ""
-
                         showDateOfBirth.text = basicDetails["birthdate"] as? String ?: "DD/MM/YYYY"
                         showGender.text = basicDetails["gender"] as? String ?: ""
-                        showHeight.text = "$height $heightUnit"
-                        showWeight.text = "$weight $weightUnit"
+                        showHeight.text = basicDetails["height"] as? String ?: ""
+                        showWeight.text = basicDetails["weight"] as? String ?: ""
 
-//                        spinnerGender.setSelection(getSpinnerIndex(spinnerGender, basicDetails["gender"] as? String ?: ""))
-//                        spinnerHeights.setSelection(getSpinnerIndex(spinnerHeights, basicDetails["heightUnit"] as? String ?: ""))
-//                        spinnerWeight.setSelection(getSpinnerIndex(spinnerWeight, basicDetails["weightUnit"] as? String ?: ""))
+                        // Set values in edit mode
+                        editTextHeight.setText(showHeight.text.split(" ")[0])
+                        editTextWeight.setText(showWeight.text.split(" ")[0])
+
+                        val heightUnit = showHeight.text.split(" ").getOrNull(1) ?: ""
+                        val weightUnit = showWeight.text.split(" ").getOrNull(1) ?: ""
+
+                        spinnerHeights.setSelection(getSpinnerIndex(spinnerHeights, heightUnit))
+                        spinnerWeight.setSelection(getSpinnerIndex(spinnerWeight, weightUnit))
+                        spinnerGender.setSelection(getSpinnerIndex(spinnerGender, showGender.text.toString()))
                     }
                     Log.d("AboutMe", "User details loaded successfully!")
                 }
@@ -212,7 +214,7 @@ class AboutMeActivity : AppCompatActivity() {
     private fun saveUserDetails() {
         val user = auth.currentUser
         if (user != null) {
-            val emailKey = user.email?: "No_Email"
+            val emailKey = user.email ?: "No_Email"
 
             val userDetails = hashMapOf(
                 "name" to name.text.toString(),
@@ -222,10 +224,8 @@ class AboutMeActivity : AppCompatActivity() {
             val basicDetails = hashMapOf(
                 "birthdate" to dateOfBirth.text.toString(),
                 "gender" to spinnerGender.selectedItem.toString(),
-                "height" to editTextHeight.text.toString(),
-                "heightUnit" to spinnerHeights.selectedItem.toString(),
-                "weight" to editTextWeight.text.toString(),
-                "weightUnit" to spinnerWeight.selectedItem.toString()
+                "height" to "${editTextHeight.text} ${spinnerHeights.selectedItem}",  // Store height as "128 cm"
+                "weight" to "${editTextWeight.text} ${spinnerWeight.selectedItem}"    // Store weight as "60 kg"
             )
 
             // Save user info document
@@ -251,6 +251,7 @@ class AboutMeActivity : AppCompatActivity() {
             Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show()
         }
     }
+
 
 
     private fun getSpinnerIndex(spinner: Spinner, value: String): Int {
