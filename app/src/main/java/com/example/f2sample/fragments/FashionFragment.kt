@@ -4,7 +4,6 @@ import android.app.Activity
 import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Bundle
-import android.os.Looper
 import android.provider.MediaStore
 import android.view.LayoutInflater
 import android.view.View
@@ -14,7 +13,6 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.f2sample.PaymentActivity
 import com.example.f2sample.R
 import com.example.f2sample.adapter.ChatAdapter
 import com.example.f2sample.data.Message
@@ -36,8 +34,6 @@ class FashionFragment : Fragment(R.layout.fragment_fashion) {
     private lateinit var imageView: ImageView
     private lateinit var recyclerView: RecyclerView
     private lateinit var chatAdapter: ChatAdapter
-    private var fashionFragmentOverlay: FrameLayout? = null
-    private var upgradeButton: Button? = null
 
     private val PICK_IMAGE_REQUEST = 1
     private var imageBitmap: Bitmap? = null
@@ -57,8 +53,6 @@ class FashionFragment : Fragment(R.layout.fragment_fashion) {
         uploadButton = view.findViewById(R.id.uploadButtonF)
         imageView = view.findViewById(R.id.imageViewF)
         recyclerView = view.findViewById(R.id.recyclerViewFashionFragmentF)
-        fashionFragmentOverlay = view.findViewById(R.id.fashionFragmentOverlay)
-        upgradeButton = view.findViewById(R.id.upgradeButton)
 
         chatAdapter = ChatAdapter(emptyList())
         recyclerView.layoutManager = LinearLayoutManager(context)
@@ -66,13 +60,8 @@ class FashionFragment : Fragment(R.layout.fragment_fashion) {
 
         sendButton.setOnClickListener { sendMessage() }
         uploadButton.setOnClickListener { pickImageFromGallery() }
-        upgradeButton?.setOnClickListener {
-            val intent = Intent(requireContext(), PaymentActivity::class.java)
-            startActivity(intent)
-        }
 
         listenForMessages()
-        getFashionChatsCount()
         return view
     }
 
@@ -232,28 +221,4 @@ class FashionFragment : Fragment(R.layout.fragment_fashion) {
         recyclerView.adapter = chatAdapter
         recyclerView.scrollToPosition(messages.size - 1)
     }
-
-    private fun getFashionChatsCount() {
-        val userRef = db.collection("users").document(userId)
-
-        userRef.get().addOnSuccessListener { userSnapshot ->
-            val info = userSnapshot.get("info") as? Map<*, *>
-            val subscription = info?.get("subscription") as? String ?: "free"
-
-            userRef.collection("beauty_chats").get()
-                .addOnSuccessListener { snapshot ->
-                    val count = snapshot.size()
-
-                    requireActivity().runOnUiThread {
-                        if (subscription.lowercase() == "free" && count > 20) {
-                            fashionFragmentOverlay?.visibility = View.VISIBLE
-                        } else {
-                            fashionFragmentOverlay?.visibility = View.GONE
-                        }
-                    }
-                }
-                .addOnFailureListener { e -> println("Error fetching beauty_chats: ${e.message}") }
-        }.addOnFailureListener { e -> println("Error fetching user data: ${e.message}") }
-    }
-
 }
