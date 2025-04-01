@@ -1,54 +1,100 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:id="@+id/chatView"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:paddingTop="30dp"
+    android:paddingBottom="10dp"
+    android:paddingHorizontal="10dp">
+
+    <FrameLayout
+        android:id="@+id/beautyFragmentOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#80000000"
+        android:gravity="center"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <Button
+            android:id="@+id/upgradeButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:background="@android:color/holo_blue_light"
+            android:text="Upgrade to Subscription"
+            android:textColor="@android:color/white" />
+    </FrameLayout>
+
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recylerViewBeautyFragment"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:scrollbars="vertical"/>
+        android:scrollbars="vertical"
+        app:layout_constraintBottom_toTopOf="@+id/inputField"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
-    <LinearLayout
-        android:layout_width="match_parent"
+    <EditText
+        android:id="@+id/inputField"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:gravity="center"
-        android:orientation="horizontal">
+        android:hint="Type a message"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/uploadButton"
+        app:layout_constraintStart_toStartOf="parent" />
 
-        <EditText
-            android:id="@+id/inputField"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:hint="Type a message"/>
 
-        <ImageView
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:scaleType="fitXY"
-            android:padding="5dp"
-            android:id="@+id/imageView"/>
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:elevation="10dp"
+        app:layout_constraintBottom_toBottomOf="@+id/imageView"
+        app:layout_constraintEnd_toEndOf="@+id/imageView"
+        app:layout_constraintStart_toStartOf="@+id/imageView"
+        app:layout_constraintTop_toTopOf="@+id/imageView" />
 
-        <ImageButton
-            android:id="@+id/uploadButton"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:padding="5dp"
-            android:background="@drawable/add_photo_alternate_24px"
-            android:text="Upload Image"/>
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_margin="10dp"
+        android:scaleType="centerCrop"
+        android:clipToOutline="true"
+        android:visibility="gone"
+        android:background="@drawable/user_bubble_bg"
+        app:layout_constraintBottom_toTopOf="@+id/inputField"
+        app:layout_constraintStart_toStartOf="parent" />
 
-        <ImageButton
-            android:id="@+id/sendButton"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:padding="5dp"
-            android:background="@drawable/send_24px"
-            android:text="Send"/>
-    </LinearLayout>
+    <ImageButton
+        android:id="@+id/uploadButton"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="@drawable/add_photo_alternate_24px"
+        android:padding="5dp"
+        android:text="Upload Image"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/sendButton" />
 
-</LinearLayout>
+    <ImageButton
+        android:id="@+id/sendButton"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="@drawable/send_24px"
+        android:padding="5dp"
+        android:text="Send"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
