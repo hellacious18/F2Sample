@@ -38,7 +38,7 @@ class ChatAdapter(private val messages: List<Message>) :
         // Message Alignment and Bubble
         if (message.isUser) {
             holder.messageContainer.gravity = Gravity.END
-            holder.messageText.setBackgroundResource(R.drawable.user_bubble_bg)
+            holder.messageText.setBackgroundResource(R.drawable.user_message_bubble)
         } else {
             holder.messageContainer.gravity = Gravity.START
             holder.messageText.setBackgroundResource(0)

@@ -10,7 +10,7 @@
         android:scaleType="center"
         android:clipToOutline="true"
         android:layout_marginVertical="5dp"
-        android:background="@drawable/user_bubble_bg"
+        android:background="@drawable/user_message_bubble"
         />
 
 

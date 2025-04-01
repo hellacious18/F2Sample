@@ -1,11 +1,17 @@
 package com.example.f2sample
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
+import android.view.View
+import android.widget.MediaController
+import android.widget.TextView
 import android.widget.Toast
+import android.widget.VideoView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
@@ -21,6 +27,11 @@ class MainActivity : AppCompatActivity() {
     private lateinit var googleSignInClient: GoogleSignInClient
     private val RC_SIGN_IN = 9001
 
+    private lateinit var videoView: VideoView
+    private lateinit var welcomeText: TextView
+    private lateinit var appDescription: TextView
+    private lateinit var btnGoogleSignIn: SignInButton
+
     override fun onStart() {
         super.onStart()
         val user = FirebaseAuth.getInstance().currentUser
@@ -34,6 +45,55 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
 
         setContentView(R.layout.activity_main)
+
+        // Initialize views
+        videoView = findViewById(R.id.background_video)
+        welcomeText = findViewById(R.id.welcome_text)
+        appDescription = findViewById(R.id.app_description)
+        btnGoogleSignIn = findViewById(R.id.btnGoogleSignIn)
+
+
+        val videoPath = "android.resource://" + packageName + "/" + R.raw.main
+        videoView.setVideoURI(Uri.parse(videoPath))
+
+        val mediaController = MediaController(this)
+        mediaController.setAnchorView(videoView)
+        mediaController.setVisibility(View.GONE)
+        videoView.setMediaController(mediaController)
+
+        videoView.setOnPreparedListener { mp ->
+            mp.isLooping = false
+
+            val videoWidth = mp.videoWidth.toFloat()
+            val videoHeight = mp.videoHeight.toFloat()
+            val screenWidth = videoView.width.toFloat()
+            val screenHeight = videoView.height.toFloat()
+
+            // Calculate the smaller dimension between screen width and height
+            val smallerDimension = minOf(screenWidth, screenHeight)
+
+            // Set the layout parameters to make the VideoView square
+            val layoutParams = videoView.layoutParams as ConstraintLayout.LayoutParams
+            layoutParams.width = smallerDimension.toInt()
+            layoutParams.height = smallerDimension.toInt()
+
+            // Center the VideoView horizontally and vertically
+            layoutParams.startToStart = ConstraintLayout.LayoutParams.PARENT_ID
+            layoutParams.endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
+            layoutParams.topToTop = ConstraintLayout.LayoutParams.PARENT_ID
+            layoutParams.bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
+
+            videoView.layoutParams = layoutParams
+
+            videoView.start()
+
+        }
+
+        videoView.setOnErrorListener { mp, what, extra ->
+            Log.e("VideoError", "Error during video playback: what=$what, extra=$extra")
+            return@setOnErrorListener true
+        }
+
 
         auth = FirebaseAuth.getInstance()
 
@@ -49,7 +109,7 @@ class MainActivity : AppCompatActivity() {
 
         googleSignInClient = GoogleSignIn.getClient(this, gso)
 
-        findViewById<SignInButton>(R.id.btnGoogleSignIn).setOnClickListener {
+        btnGoogleSignIn.setOnClickListener {
             signIn()
         }
     }
@@ -74,6 +134,7 @@ class MainActivity : AppCompatActivity() {
                 firebaseAuthWithGoogle(account.idToken!!)
             } catch (e: ApiException) {
                 Log.w("GoogleSignIn", "Google sign-in failed", e)
+                Toast.makeText(this, "Google sign-in failed", Toast.LENGTH_SHORT).show()
             }
         }
     }
