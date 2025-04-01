@@ -6,10 +6,14 @@ import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -25,6 +29,7 @@ import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.vertexai.vertexAI
 import com.google.firebase.vertexai.type.content
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import java.io.ByteArrayOutputStream
 import java.util.UUID
 
@@ -40,13 +45,11 @@ class BeautyFragment : Fragment(R.layout.fragment_beauty) {
     private var beautyFragmentOverlay: FrameLayout? = null
     private var upgradeButton: Button? = null
 
-    private val PICK_IMAGE_REQUEST = 1
     private var imageBitmap: Bitmap? = null
+    private var uploadedImageUrl: String? = null
 
     // Maintain local conversation history for context memory.
     private val conversationHistory = mutableListOf<Message>()
-    private var uploadedImageUrl: String? = null
-
 
     // Firebase services
     private val db = FirebaseFirestore.getInstance()
@@ -55,6 +58,8 @@ class BeautyFragment : Fragment(R.layout.fragment_beauty) {
     private val generativeModel = Firebase.vertexAI.generativeModel("gemini-2.0-flash")
     // Save chats using the current user's email (or default)
     private val userId = FirebaseAuth.getInstance().currentUser?.email ?: "guest@example.com"
+
+    private lateinit var imagePickerLauncher: ActivityResultLauncher<Intent>
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(R.layout.fragment_beauty, container, false)
@@ -81,50 +86,59 @@ class BeautyFragment : Fragment(R.layout.fragment_beauty) {
             startActivity(intent)
         }
 
+        // Initialize ActivityResultLauncher
+        imagePickerLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK && result.data != null) {
+                val imageUri = result.data?.data
+                imageUri?.let { uri ->
+                    handleImageSelection(uri)
+                }
+            }
+        }
 
         listenForMessages()
         getBeautyChatsCount()
         return view
     }
 
+
     private fun pickImageFromGallery() {
         val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-        startActivityForResult(intent, PICK_IMAGE_REQUEST)
+        imagePickerLauncher.launch(intent)
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
 
-        if (requestCode == PICK_IMAGE_REQUEST && resultCode == Activity.RESULT_OK && data != null) {
-            val imageUri = data.data ?: return
+    private fun handleImageSelection(imageUri: Uri) {
+        lifecycleScope.launch {
+            try {
+                val bitmap = MediaStore.Images.Media.getBitmap(requireActivity().contentResolver, imageUri)
+                imageBitmap = bitmap
+                imageView.setImageBitmap(bitmap)
+                imageView.isVisible = true
+                imageView.alpha = 0.5f
+                progressBar.isVisible = true
 
-            val bitmap = MediaStore.Images.Media.getBitmap(requireActivity().contentResolver, imageUri)
-            imageView.setImageBitmap(bitmap)
-            imageBitmap = bitmap
-
-            // Show progress bar
-            progressBar.visibility = View.VISIBLE
-            imageView.visibility = View.VISIBLE
-            imageView.alpha = 0.5f
-
-            // Upload image immediately
-            uploadImageToFirebaseStorage(imageUri) { uploadedUrl ->
-                uploadedImageUrl = uploadedUrl // Store uploaded URL
-                progressBar.visibility = View.GONE // Hide progress bar
-                imageView.alpha = 1.0f // Restore image visibility
+                uploadImageToFirebaseStorage(imageUri) { uploadedUrl ->
+                    uploadedImageUrl = uploadedUrl
+                    progressBar.isVisible = false
+                    imageView.alpha = 1.0f
+                    Log.d("BeautyFragment", "Uploaded Image URL: $uploadedImageUrl")
+                }
+            } catch (e: Exception) {
+                Log.e("BeautyFragment", "Error handling image selection: ${e.message}", e)
+                Toast.makeText(requireContext(), "Error selecting image", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
+
     private fun sendMessage() {
         val userMessage = inputField.text.toString().trim()
 
-        // If no text and no uploaded image, return
         if (userMessage.isEmpty() && uploadedImageUrl == null) return
 
-        // Clear input field
         inputField.text.clear()
-        imageView.visibility = View.GONE
+        imageView.isVisible = false
 
         val message = Message(
             text = userMessage.ifEmpty { "Analyze image" },
@@ -134,38 +148,38 @@ class BeautyFragment : Fragment(R.layout.fragment_beauty) {
 
         saveMessageToFirestore(message)
         conversationHistory.add(message)
+        updateChatUI(conversationHistory)
 
-        // Get AI response
         getAIResponse(userMessage.ifEmpty { "Analyze image" }, imageBitmap)
 
-        // Reset image data after sending
         imageBitmap = null
         uploadedImageUrl = null
         imageView.setImageBitmap(null)
     }
 
+
     private fun uploadImageToFirebaseStorage(imageUri: Uri, onUploadComplete: (String?) -> Unit) {
-        val storageRef = FirebaseStorage.getInstance().reference.child("images/${UUID.randomUUID()}.jpg")
+        lifecycleScope.launch {
+            try {
+                val storageRef = storage.reference.child("images/${UUID.randomUUID()}.jpg")
+                val uploadTask = storageRef.putFile(imageUri)
+                uploadTask.await() // Wait for upload to complete
 
-        storageRef.putFile(imageUri)
-            .addOnSuccessListener { taskSnapshot ->
-                storageRef.downloadUrl.addOnSuccessListener { uri ->
-                    onUploadComplete(uri.toString()) // Store uploaded URL
-                }
+                val uri = storageRef.downloadUrl.await() // Get the download URL
+                onUploadComplete(uri.toString())
+            } catch (e: Exception) {
+                Log.e("BeautyFragment", "Error uploading image: ${e.message}", e)
+                onUploadComplete(null)
             }
-            .addOnFailureListener {
-                onUploadComplete(null) // Handle failure
-            }
+        }
     }
-
 
 
     private fun getAIResponse(userMessage: String, promptBitmap: Bitmap?) {
         lifecycleScope.launch {
             try {
-                // Build a context string from recent messages (if available)
                 val contextString = conversationHistory.takeLast(10).joinToString(separator = "\n") { msg ->
-                    if (msg.isUser) "User: ${msg.text}" else "${msg.text}"
+                    if (msg.isUser) "User: ${msg.text}" else "AI: ${msg.text}"
                 }
 
                 val instructions = "Analyze the provided image for facial features and offer brief beauty and skincare suggestions. Provide detailed recommendations only when requested. If no face is detected, inform the user once without repeatedly asking for another image. Keep the conversation focused on beauty, facial analysis, and skincare."
@@ -187,63 +201,56 @@ class BeautyFragment : Fragment(R.layout.fragment_beauty) {
                 generativeModel.generateContentStream(prompt).collect { chunk ->
                     chunk.text?.let {
                         responseBuilder.append(it)
-                        // Optionally update UI with streaming response
                         val streamingMessage = Message(
                             text = responseBuilder.toString(),
+                            imageUrl = null,
                             isUser = false
                         )
-                        updateChatUI(listOf(streamingMessage))
+                        val updatedList = conversationHistory + streamingMessage
+                        updateChatUI(updatedList)
                     }
                 }
 
-                val finalMessage = Message(
+                val aiResponseMessage = Message(
                     text = responseBuilder.toString(),
+                    imageUrl = null,
                     isUser = false
                 )
-                saveMessageToFirestore(finalMessage)
-                conversationHistory.add(finalMessage)
+
+                saveMessageToFirestore(aiResponseMessage)
+                conversationHistory.add(aiResponseMessage)
+                updateChatUI(conversationHistory)
+
             } catch (e: Exception) {
-                e.printStackTrace()
+                Log.e("BeautyFragment", "Error getting AI response: ${e.message}", e)
+                val errorMessage = Message(
+                    text = "Error: ${e.message}",
+                    imageUrl = null,
+                    isUser = false
+                )
+                saveMessageToFirestore(errorMessage)
+                conversationHistory.add(errorMessage)
+                updateChatUI(conversationHistory)
             }
         }
     }
 
-
-    private fun uploadImageToFirebaseStorage(callback: (String) -> Unit) {
-        requireActivity().runOnUiThread {
-            progressBar.visibility = View.VISIBLE
-            imageView.alpha = 0.5f
-        }
-        val storageRef = storage.reference.child("images/${System.currentTimeMillis()}.jpg")
-        val baos = ByteArrayOutputStream()
-        imageBitmap?.compress(Bitmap.CompressFormat.JPEG, 90, baos)
-        val data = baos.toByteArray()
-
-        storageRef.putBytes(data)
-            .addOnSuccessListener {
-                storageRef.downloadUrl.addOnSuccessListener { uri ->
-                    progressBar.visibility = View.GONE
-                    callback(uri.toString())
-                }
-            }
-            .addOnFailureListener { e ->
-                progressBar.visibility = View.GONE
-                e.printStackTrace()
-            }
-    }
 
     private fun saveMessageToFirestore(message: Message) {
-        db.collection("users")
-            .document(userId)
-            .collection("beauty_chats")
-            .add(message)
-            .addOnSuccessListener {
-                println("Message saved successfully!")
+        lifecycleScope.launch {
+            try {
+                db.collection("users")
+                    .document(userId)
+                    .collection("beauty_chats")
+                    .add(message)
+                    .await()
+                Log.d("BeautyFragment", "Message saved successfully!")
+            } catch (e: Exception) {
+                Log.e("BeautyFragment", "Error saving message: ${e.message}", e)
             }
-            .addOnFailureListener { e ->
-                e.printStackTrace()
-            }
+        }
     }
+
 
     private fun listenForMessages() {
         db.collection("users")
@@ -252,48 +259,57 @@ class BeautyFragment : Fragment(R.layout.fragment_beauty) {
             .orderBy("timestamp")
             .addSnapshotListener { snapshot, e ->
                 if (e != null) {
-                    e.printStackTrace()
+                    Log.e("BeautyFragment", "Listen failed: ${e.message}", e)
                     return@addSnapshotListener
                 }
-                val messages = snapshot?.documents?.map { doc ->
-                    doc.toObject(Message::class.java)!!
+                val messages = snapshot?.documents?.mapNotNull { doc ->
+                    doc.toObject(Message::class.java)
                 } ?: emptyList()
-                // Update local conversation history as well
+
                 conversationHistory.clear()
                 conversationHistory.addAll(messages)
                 updateChatUI(messages)
             }
     }
 
+
     private fun updateChatUI(messages: List<Message>) {
-        chatAdapter = ChatAdapter(messages)
-        recyclerView.layoutManager = LinearLayoutManager(context)
-        recyclerView.adapter = chatAdapter
-        recyclerView.scrollToPosition(messages.size - 1)
+        if (isAdded) {
+            requireActivity().runOnUiThread {
+                chatAdapter = ChatAdapter(messages)
+                recyclerView.layoutManager = LinearLayoutManager(context)
+                recyclerView.adapter = chatAdapter
+                recyclerView.scrollToPosition(messages.size - 1)
+            }
+        }
     }
 
     private fun getBeautyChatsCount() {
         val userRef = db.collection("users").document(userId)
 
+        var subscription: String? = null
+
         userRef.get().addOnSuccessListener { userSnapshot ->
             val info = userSnapshot.get("info") as? Map<*, *>
-            val subscription = info?.get("subscription") as? String ?: "Free Plan (Default)"
+            subscription = info?.get("subscription") as? String ?: "Free Plan (Default)"
 
             userRef.collection("beauty_chats").get()
                 .addOnSuccessListener { snapshot ->
                     val count = snapshot.size()
 
-                    requireActivity().runOnUiThread {
-                        if (subscription.lowercase() == "Free Plan (Default)"&& count > 20) {
-                            beautyFragmentOverlay?.visibility = View.VISIBLE
-                        } else {
-                            beautyFragmentOverlay?.visibility = View.GONE
+                    if (isAdded) { // Check if Fragment is attached
+                        requireActivity().runOnUiThread {
+                            beautyFragmentOverlay?.isVisible =
+                                subscription?.lowercase() == "Free Plan (Default)" && count > 20
                         }
                     }
                 }
-                .addOnFailureListener { e -> println("Error fetching beauty_chats: ${e.message}") }
-        }.addOnFailureListener { e -> println("Error fetching user data: ${e.message}") }
+                .addOnFailureListener { e ->
+                    Log.e("BeautyFragment", "Error fetching beauty_chats: ${e.message}", e)
+                }
+        }.addOnFailureListener { e ->
+            Log.e("BeautyFragment", "Error fetching user data: ${e.message}", e)
+        }
     }
-
 
 }
