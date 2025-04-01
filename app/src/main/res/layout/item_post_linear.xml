@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="8dp"
+    app:cardBackgroundColor="@color/surface"
     app:cardCornerRadius="12dp"
-    app:cardElevation="6dp">
+    app:cardElevation="4dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -19,7 +18,6 @@
             android:id="@+id/userInfoLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_vertical"
             android:orientation="horizontal"
             android:padding="8dp"
             app:layout_constraintEnd_toEndOf="parent"
@@ -32,6 +30,8 @@
                 android:layout_height="40dp"
                 android:scaleType="centerCrop"
                 android:src="@drawable/account_circle_24px"
+                app:civ_border_color="@color/primaryVariant"
+                app:civ_border_width="1dp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -40,9 +40,10 @@
                 android:id="@+id/postUserName"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:padding="8dp"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
                 android:text="example@gmail.com"
-                android:textColor="@color/black"
+                android:textColor="@color/onSurface"
                 android:textSize="16sp"
                 android:textStyle="bold"
                 app:layout_constraintBottom_toBottomOf="parent"
@@ -54,8 +55,11 @@
                 android:id="@+id/imageButton"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
-                android:background="@null"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:focusable="true"
                 android:src="@drawable/star_yellow_24dp"
+                app:tint="@color/secondary"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="@+id/textViewAvgRatings"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -65,7 +69,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="0.0"
-                android:textSize="16dp"
+                android:textColor="@color/onSurface"
+                android:textSize="16sp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="@+id/post_menu"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -74,8 +79,11 @@
                 android:id="@+id/post_menu"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
-                android:background="@null"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:focusable="true"
                 android:src="@drawable/vert_menu_24px"
+                app:tint="@color/onSurface"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -88,9 +96,9 @@
             android:layout_height="350dp"
             android:layout_marginTop="8dp"
             android:scaleType="centerCrop"
-            app:layout_constraintTop_toBottomOf="@+id/userInfoLayout"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            app:layout_constraintTop_toBottomOf="@+id/userInfoLayout" />
 
         <LinearLayout
             android:id="@+id/actionButtonsLayout"
@@ -98,6 +106,8 @@
             android:layout_height="wrap_content"
             android:gravity="center"
             android:orientation="horizontal"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/postImageView">
@@ -106,62 +116,80 @@
                 android:id="@+id/ratingImageButton"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
-                android:background="@null"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:focusable="true"
                 android:padding="8dp"
-                android:src="@drawable/star_24px" />
+                android:src="@drawable/star_24px"
+                app:tint="@color/primaryVariant" />
 
             <TextView
                 android:id="@+id/ratingCount"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:padding="8dp"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
                 android:text="0"
-                android:textSize="20dp" />
+                android:textColor="@color/onSurface"
+                android:textSize="16sp" />
 
             <ImageButton
                 android:id="@+id/likeButton"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
-                android:background="@null"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:focusable="true"
                 android:contentDescription="Like"
                 android:padding="8dp"
-                android:src="@drawable/like_24px" />
+                android:src="@drawable/like_24px"
+                app:tint="@color/primaryVariant" />
 
             <TextView
                 android:id="@+id/likeCountText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:contentDescription="LikeCount"
-                android:padding="8dp"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
                 android:text="0"
-                android:textSize="20dp" />
+                android:textColor="@color/onSurface"
+                android:textSize="16sp" />
 
             <ImageButton
                 android:id="@+id/commentButton"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
-                android:background="@null"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:focusable="true"
                 android:contentDescription="Comment"
                 android:padding="8dp"
-                android:src="@drawable/comment_24px" />
+                android:src="@drawable/comment_24px"
+                app:tint="@color/primaryVariant" />
 
             <TextView
                 android:id="@+id/commentCountText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:contentDescription="LikeCount"
-                android:padding="8dp"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
                 android:text="0"
-                android:textSize="20dp" />
+                android:textColor="@color/onSurface"
+                android:textSize="16sp" />
 
             <ImageButton
                 android:id="@+id/shareButton"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
-                android:background="@null"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:focusable="true"
                 android:contentDescription="Share"
                 android:padding="8dp"
-                android:src="@drawable/share_24px" />
+                android:src="@drawable/share_24px"
+                app:tint="@color/primaryVariant" />
         </LinearLayout>
 
         <RatingBar
@@ -188,17 +216,24 @@
                 android:id="@+id/editTextComment"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:hint="enter your comment"
+                android:hint="Add a comment..."
+                android:textColorHint="@color/onSurface"
+                android:textColor="@color/onSurface"
+                android:padding="12dp"
+                android:layout_margin="8dp"
                 app:layout_constraintEnd_toStartOf="@+id/postCommentButton"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
             <ImageButton
                 android:id="@+id/postCommentButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="12dp"
-                android:background="@drawable/send_24px"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:focusable="true"
+                android:src="@drawable/send_24px"
+                app:tint="@color/primaryVariant"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
@@ -206,6 +241,7 @@
                 android:id="@+id/recyclerViewComment"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"

@@ -3,10 +3,12 @@ package com.example.f2sample.fragments
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
+import android.widget.ImageButton
 import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.f2sample.R
@@ -31,6 +33,8 @@ class UserFeedFragment : Fragment(R.layout.fragment_user_feed) {
     private lateinit var progressBar: ProgressBar
     private lateinit var recyclerViewUserFeed: RecyclerView
     private lateinit var floatingButton: FloatingActionButton
+    private lateinit var feedViewButton: ImageButton
+    private var isLinearLayoutManager = true // Default to linear layout
 
     // Image Picker Result
     private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
@@ -44,10 +48,13 @@ class UserFeedFragment : Fragment(R.layout.fragment_user_feed) {
         progressBar = view.findViewById(R.id.progress_bar)
         recyclerViewUserFeed = view.findViewById(R.id.recyclerViewUserFeed)
         floatingButton = view.findViewById(R.id.floatingButton)
+        feedViewButton = view.findViewById(R.id.feedView)
+
+        // Set up initial layout manager
+        setLayoutManager()
 
         // Setup RecyclerView with delete functionality
-        adapter = PostAdapter(postList) { post -> deletePost(post) }
-        recyclerViewUserFeed.layoutManager = LinearLayoutManager(requireContext())
+        adapter = PostAdapter(postList,isLinearLayoutManager) { post -> deletePost(post) }
         recyclerViewUserFeed.adapter = adapter
 
         showLoading()
@@ -58,6 +65,24 @@ class UserFeedFragment : Fragment(R.layout.fragment_user_feed) {
         // Handle Floating Button Click
         floatingButton.setOnClickListener {
             pickImageLauncher.launch("image/*")
+        }
+
+        // Handle Feed View Button Click
+        feedViewButton.setOnClickListener {
+            isLinearLayoutManager = !isLinearLayoutManager
+            setLayoutManager()
+            adapter.setLayout(isLinearLayoutManager)
+        }
+    }
+
+    private fun setLayoutManager() {
+        if (isLinearLayoutManager) {
+            recyclerViewUserFeed.layoutManager = LinearLayoutManager(requireContext())
+            feedViewButton.setImageResource(R.drawable.grid_view_24px) // Change icon accordingly
+        } else {
+            recyclerViewUserFeed.layoutManager = GridLayoutManager(requireContext(), 2)
+            feedViewButton.setImageResource(R.drawable.view_agenda_24px) // Change icon accordingly
+
         }
     }
 
