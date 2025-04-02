@@ -1,246 +1,444 @@
-<?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp"
+    android:background="@color/surface"
     tools:context=".AboutMeActivity">
 
-    <!-- Guideline for structured vertical spacing -->
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guidelineCenter"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_constraintGuide_percent="0.5" />
-
-    <TextView
-        android:id="@+id/aboutMeTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="About Me"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        android:paddingTop="100dp"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/topBarLayout"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:background="@drawable/top_bar_gradient"
+        android:elevation="4dp"
+        android:paddingHorizontal="20dp"
+        android:paddingVertical="10dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent">
 
-    <de.hdodenhof.circleimageview.CircleImageView
-        android:id="@+id/aboutMeImage"
-        android:layout_width="150dp"
-        android:layout_height="150dp"
-        android:src="@drawable/account_circle_24px"
-        app:layout_constraintTop_toBottomOf="@id/aboutMeTitle"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="16dp" />
-
-    <TextView
-        android:id="@+id/aboutMeName"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Your Name"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        app:layout_constraintTop_toBottomOf="@id/aboutMeImage"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="8dp" />
+        <TextView
+            android:id="@+id/chatTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-medium"
+            android:text="Tell Us About Yourself"
+            android:textColor="@color/onPrimary"
+            android:textSize="20sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <TextView
-        android:id="@+id/aboutMeEmail"
-        android:layout_width="wrap_content"
+        android:id="@+id/textView2"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="example@gmail.com"
-        android:textSize="16sp"
-        app:layout_constraintTop_toBottomOf="@id/aboutMeName"
-        app:layout_constraintStart_toStartOf="parent"
+        android:background="@color/secondary"
+        android:fontFamily="sans-serif"
+        android:gravity="center"
+        android:paddingVertical="5dp"
+        android:text="We will use this information to improve your recommendations."
+        android:textColor="@color/onSecondary"
+        android:textSize="12sp"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="4dp" />
-
-    <ImageView
-        android:id="@+id/editProfile"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/edit_24px"
-        android:visibility="visible"
-        android:padding="10dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/aboutMeEmail"/>
-
-
-    <!-- Gender Selection -->
-    <TextView
-        android:id="@+id/textViewGender"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Gender:"
-        android:textSize="18sp"
-        app:layout_constraintTop_toBottomOf="@id/aboutMeEmail"
         app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginTop="16dp" />
+        app:layout_constraintTop_toBottomOf="@+id/topBarLayout" />
 
     <TextView
-        android:id="@+id/textViewGenderShow"
+        android:id="@+id/ageLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="None"
-        android:textSize="18sp"
-        app:layout_constraintStart_toEndOf="@id/textViewGender"
-        app:layout_constraintTop_toBottomOf="@id/aboutMeEmail"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="16dp"/>
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginTop="30dp"
+        android:fontFamily="sans-serif-medium"
+        android:text="AGE"
+        android:textColor="@color/onSurface"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView2" />
 
-    <Spinner
-        android:id="@+id/spinnerGender"
+    <com.google.android.material.chip.ChipGroup
+        android:id="@+id/ageChipGroup"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:entries="@array/gender"
-        android:visibility="gone"
-        app:layout_constraintStart_toEndOf="@id/textViewGender"
+        android:layout_marginHorizontal="20dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/aboutMeEmail"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="16dp"/>
-
-    <!-- Date of Birth -->
-    <TextView
-        android:id="@+id/textViewDOB"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Date of Birth:"
-        android:textSize="18sp"
-        app:layout_constraintTop_toBottomOf="@id/textViewGender"
         app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginTop="16dp" />
+        app:layout_constraintTop_toBottomOf="@+id/ageLabel"
+        app:singleSelection="true">
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipTeens"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="13 - 17"
+            android:textColor="@color/onSurface"
+            android:background="@color/chip_background_color"/>
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipYoungAdults"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="18 - 24"
+            android:textColor="@color/onSurface"
+            android:background="@color/chip_background_color"/>
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipAdults"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="25 - 34"
+            android:textColor="@color/onSurface"
+            android:background="@color/chip_background_color"/>
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipMidAdults"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="35 - 49"
+            android:textColor="@color/onSurface"
+            android:background="@color/chip_background_color"/>
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipMature"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="50+"
+            android:textColor="@color/onSurface"
+            android:background="@color/chip_background_color"/>
+
+    </com.google.android.material.chip.ChipGroup>
 
     <TextView
-        android:id="@+id/dateOfBirth"
+        android:id="@+id/genderLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:hint="DD/MM/YYYY"
-        android:visibility="gone"
-        android:textSize="18sp"
-        android:clickable="true"
-        app:layout_constraintStart_toEndOf="@id/textViewDOB"
-        app:layout_constraintTop_toBottomOf="@id/spinnerGender"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="16dp"/>
-
-    <TextView
-        android:id="@+id/dateOfBirthShow"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="None"
-        android:textSize="18sp"
-        android:clickable="true"
-        app:layout_constraintStart_toEndOf="@id/textViewDOB"
-        app:layout_constraintTop_toBottomOf="@id/textViewGenderShow"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="16dp"/>
-
-    <!-- Height -->
-    <TextView
-        android:id="@+id/textViewHeight"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Height:"
-        android:textSize="18sp"
-        app:layout_constraintTop_toBottomOf="@id/textViewDOB"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginTop="24dp"
+        android:fontFamily="sans-serif-medium"
+        android:text="GENDER"
+        android:textColor="@color/onSurface"
         app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginTop="16dp" />
+        app:layout_constraintTop_toBottomOf="@+id/ageChipGroup" />
 
-    <EditText
-        android:id="@+id/editTextHeight"
+    <com.google.android.material.chip.ChipGroup
+        android:id="@+id/genderChipGroup"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:hint="000"
-        android:visibility="gone"
-        android:inputType="numberDecimal"
-        app:layout_constraintStart_toEndOf="@id/textViewHeight"
-        app:layout_constraintTop_toBottomOf="@id/dateOfBirth"
-        app:layout_constraintEnd_toStartOf="@id/spinnerHeight"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="5dp"/>
-
-    <TextView
-        android:id="@+id/textViewHeightShow"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="None"
-        android:textSize="18sp"
-        app:layout_constraintStart_toEndOf="@id/textViewHeight"
-        app:layout_constraintTop_toBottomOf="@id/dateOfBirthShow"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="16dp" />
-
-    <Spinner
-        android:id="@+id/spinnerHeight"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
-        android:entries="@array/height_units"
-        android:layout_marginTop="5dp"
+        android:layout_marginHorizontal="20dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@id/editTextHeight" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/genderLabel"
+        app:singleSelection="true">
 
-    <!-- Weight -->
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipMale"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Male"
+            app:chipIconEnabled="true"
+            app:chipIcon="@drawable/male_24px"
+            android:textColor="@color/onSurface"
+            app:chipBackgroundColor="@color/chip_background_color"/>
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipFemale"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:chipIconEnabled="true"
+            app:chipIcon="@drawable/female_24px"
+            android:text="Female"
+            android:textColor="@color/onSurface"
+            app:chipBackgroundColor="@color/chip_background_color"/>
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipOthers"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Others"
+            app:chipIconEnabled="true"
+            app:chipIcon="@drawable/transgender_24px"
+            android:textColor="@color/onSurface"
+            app:chipBackgroundColor="@color/chip_background_color"/>
+    </com.google.android.material.chip.ChipGroup>
+
     <TextView
-        android:id="@+id/textViewWeight"
+        android:id="@+id/bodySizeLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Weight:"
-        android:textSize="18sp"
-        app:layout_constraintTop_toBottomOf="@id/textViewHeight"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginTop="24dp"
+        android:fontFamily="sans-serif-medium"
+        android:text="BODY SIZE"
+        android:textColor="@color/onSurface"
         app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginTop="23dp" />
+        app:layout_constraintTop_toBottomOf="@+id/genderChipGroup" />
 
-    <EditText
-        android:id="@+id/editTextWeight"
+    <com.google.android.material.chip.ChipGroup
+        android:id="@+id/bodySizeChipGroup"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:hint="000"
-        android:visibility="gone"
-        android:inputType="numberDecimal"
-        app:layout_constraintStart_toEndOf="@id/textViewWeight"
-        app:layout_constraintTop_toBottomOf="@id/editTextHeight"
-        app:layout_constraintEnd_toStartOf="@id/spinnerWeight"
-        android:layout_marginStart="8dp"/>
-
-    <Spinner
-        android:id="@+id/spinnerWeight"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:entries="@array/weight_units"
-        android:layout_marginTop="5dp"
-        android:visibility="gone"
+        android:layout_marginHorizontal="20dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@id/editTextWeight" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/bodySizeLabel"
+        app:singleSelection="true">
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipXS"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="XS"
+            android:textColor="@color/onSurface"
+            android:background="@color/chip_background_color"/>
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipS"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="S"
+            android:textColor="@color/onSurface"
+            android:background="@color/chip_background_color"/>
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipM"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="M"
+            android:textColor="@color/onSurface"
+            android:background="@color/chip_background_color"/>
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipL"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="L"
+            android:textColor="@color/onSurface"
+            android:background="@color/chip_background_color"/>
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipXL"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="XL"
+            android:textColor="@color/onSurface"
+            android:background="@color/chip_background_color"/>
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipPlusSize"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Plus Size"
+            android:textColor="@color/onSurface"
+            android:background="@color/chip_background_color"/>
+    </com.google.android.material.chip.ChipGroup>
 
     <TextView
-        android:id="@+id/textViewWeightShow"
+        android:id="@+id/skinToneLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="None"
-        android:textSize="18sp"
-        app:layout_constraintStart_toEndOf="@id/textViewWeight"
-        app:layout_constraintTop_toBottomOf="@id/textViewHeightShow"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="22dp" />
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginTop="24dp"
+        android:fontFamily="sans-serif-medium"
+        android:text="SKIN TONE"
+        android:textColor="@color/onSurface"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/bodySizeChipGroup" />
 
-    <!-- Save Button -->
+    <com.google.android.material.chip.ChipGroup
+        android:id="@+id/skinToneChipGroup"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="20dp"
+        app:chipSpacingHorizontal="20dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/skinToneLabel"
+        app:singleSelection="true">
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipFair"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Fair"
+            app:chipIconEnabled="true"
+            app:chipIcon="@drawable/circle_24px"
+            app:chipIconTint="@color/skin_tone_fair"
+            android:textColor="@color/onSurface"
+            app:chipBackgroundColor="@color/chip_background_color"/>
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipLight"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+
+            app:chipIconEnabled="true"
+            app:chipIcon="@drawable/circle_24px"
+            app:chipIconTint="@color/skin_tone_light"
+            android:text="Light"
+            android:textColor="@color/onSurface"
+            app:chipBackgroundColor="@color/chip_background_color"/>
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipMedium"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Medium"
+            app:chipIconEnabled="true"
+            app:chipIcon="@drawable/circle_24px"
+            app:chipIconTint="@color/skin_tone_medium"
+            android:textColor="@color/onSurface"
+            app:chipBackgroundColor="@color/chip_background_color"/>
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipTan"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:chipIconEnabled="true"
+            app:chipIcon="@drawable/circle_24px"
+            app:chipIconTint="@color/skin_tone_tan"
+            android:text="Tan"
+            android:textColor="@color/onSurface"
+            app:chipBackgroundColor="@color/chip_background_color"/>
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipDark"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Dark"
+            app:chipIconEnabled="true"
+            app:chipIcon="@drawable/circle_24px"
+            app:chipIconTint="@color/skin_tone_dark"
+            android:textColor="@color/onSurface"
+            app:chipBackgroundColor="@color/chip_background_color"/>
+
+    </com.google.android.material.chip.ChipGroup>
+
+    <TextView
+        android:id="@+id/styleLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginTop="24dp"
+        android:fontFamily="sans-serif-medium"
+        android:text="STYLE"
+        android:textColor="@color/onSurface"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/skinToneChipGroup" />
+
+    <com.google.android.material.chip.ChipGroup
+        android:id="@+id/styleChipGroup"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="20dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/styleLabel"
+        app:singleSelection="false">
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipCasual"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Casual"
+            android:textColor="@color/onSurface"
+            android:background="@color/chip_background_color"/>
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipFormal"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Formal"
+            android:textColor="@color/onSurface"
+            android:background="@color/chip_background_color"/>
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipBohemian"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Bohemian"
+            android:textColor="@color/onSurface"
+            android:background="@color/chip_background_color"/>
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipStreetwear"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Streetwear"
+            android:textColor="@color/onSurface"
+            android:background="@color/chip_background_color"/>
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipVintage"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Vintage"
+            android:textColor="@color/onSurface"
+            android:background="@color/chip_background_color"/>
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipElegant"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Elegant"
+            android:textColor="@color/onSurface"
+            android:background="@color/chip_background_color"/>
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipAthleisure"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Athleisure"
+            android:textColor="@color/onSurface"
+            android:background="@color/chip_background_color"/>
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipGrunge"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Grunge"
+            android:textColor="@color/onSurface"
+            android:background="@color/chip_background_color"/>
+
+    </com.google.android.material.chip.ChipGroup>
+
     <Button
-        android:id="@+id/aboutMeSave"
-        android:layout_width="wrap_content"
+        android:id="@+id/saveButton"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:backgroundTint="@color/tertiary"
         android:text="Save"
-        android:textColor="@android:color/white"
-        android:padding="12dp"
+        android:layout_margin="30dp"
+        android:textColor="@color/onSecondary"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginBottom="24dp" />
+        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

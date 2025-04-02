@@ -13,4 +13,10 @@
     <color name="onSurface">#424242</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <color name="skin_tone_fair">#F8E6D8</color>
+    <color name="skin_tone_light">#F2D7C0</color>
+    <color name="skin_tone_medium">#E6C3A3</color>
+    <color name="skin_tone_tan">#D9B087</color>
+    <color name="skin_tone_dark">#A67C52</color>
 </resources>

@@ -1,17 +1,20 @@
 package com.example.f2sample.fragments
 
+import android.app.AlertDialog
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ListView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
 import com.example.f2sample.AboutMeActivity
-import com.example.f2sample.AdminActivity
 import com.example.f2sample.MainActivity
 import com.example.f2sample.PaymentActivity
 import com.example.f2sample.PaymentHistoryActivity
@@ -23,8 +26,8 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import de.hdodenhof.circleimageview.CircleImageView
-import kotlin.jvm.java
 
 class ProfileFragment : Fragment(R.layout.fragment_profile) {
 
@@ -34,7 +37,10 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
     private lateinit var listView: ListView
     private lateinit var adapter: ProfileAdapter
 
-    private lateinit var googleSignInClient: GoogleSignInClient  // Add this
+    private lateinit var googleSignInClient: GoogleSignInClient
+
+    private val firestore: FirebaseFirestore by lazy { FirebaseFirestore.getInstance() }
+    private val auth: FirebaseAuth by lazy { FirebaseAuth.getInstance() }
 
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -47,17 +53,29 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
 
         googleSignInClient = GoogleSignIn.getClient(requireContext(), GoogleSignInOptions.DEFAULT_SIGN_IN)
 
+        loadUserData() // Load profile information
+        loadAndDisplayUserProfileData() // Load and display preferences from Firestore
 
-        loadUserData()
+        val items = mutableListOf(  // Make the list mutable
+            // **Personal Details**
+            ProfileItem(null, "Body Profile"),
+            ProfileItem(null, "Age"),
+            ProfileItem(R.drawable.transgender_24px, "Gender"),
+            ProfileItem(null, "Body Size"),
+            ProfileItem(R.drawable.circle_24px, "Skin Tone"),
 
-        val items = listOf(
-            ProfileItem(R.drawable.account_circle_24px, "About Me"),
-            ProfileItem(R.drawable.ar_on_you_24px, "Facial Features"),
-            ProfileItem(R.drawable.accessibility_new_24px, "Body Measurements"),
+            // **Preferences**
+            ProfileItem(null, "Your Preference"),
+            ProfileItem(null, "Style"),
+
+            // **Account & Subscription**
             ProfileItem(R.drawable.redeem_subscription_24px, "Subscription"),
             ProfileItem(R.drawable.credit_card_clock_24px, "Payment History"),
+
+            // **Settings & Logout**
             ProfileItem(R.drawable.settings_24px, "Settings"),
-            ProfileItem(R.drawable.logout_24px, "Logout")
+            ProfileItem(R.drawable.logout_24px, "Logout"),
+            ProfileItem(R.drawable.delete_24px, "Delete Account")
         )
 
         adapter = ProfileAdapter(requireContext(), items)
@@ -65,32 +83,107 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
 
         listView.setOnItemClickListener { _, _, position, _ ->
             when (position) {
-                0 -> {startActivity(Intent(context, AboutMeActivity::class.java))}
-                1 -> Toast.makeText(context, "Face Details Clicked", Toast.LENGTH_SHORT).show()
-                2 -> Toast.makeText(context, "Body Proportions Clicked", Toast.LENGTH_SHORT).show()
-                3 -> {startActivity(Intent(context, PaymentActivity::class.java))}
-                4 -> {startActivity(Intent(context, PaymentHistoryActivity::class.java))}
-                5 -> Toast.makeText(context, "Settings Clicked", Toast.LENGTH_SHORT).show()
-                6 -> logout()
+                0 -> startActivity(Intent(context, AboutMeActivity::class.java))
+                5 -> startActivity(Intent(context, AboutMeActivity::class.java))
+                7 -> startActivity(Intent(context, PaymentActivity::class.java))
+                8 -> startActivity(Intent(context, PaymentHistoryActivity::class.java))
+                10 -> logout()
+                11 -> deleteAccount() // Call the deleteAccount function
             }
         }
 
-        return view  // ✅ Return the inflated view, not a new one
+        return view
+    }
+
+    private fun loadAndDisplayUserProfileData() {
+        val user = auth.currentUser
+        if (user != null) {
+            val emailKey = user.email ?: "No_Email"
+
+            firestore.collection("users").document(emailKey)
+                .get()
+                .addOnSuccessListener { document ->
+                    if (document.exists()) {
+                        val userProfile = document.get("userProfile") as? Map<String, Any>
+                        if (userProfile != null) {
+                            // Update the ListView items with the data
+                            updateListViewItems(userProfile)
+                        } else {
+                            Log.d("ProfileFragment", "No userProfile data found")
+                        }
+                    } else {
+                        Log.d("ProfileFragment", "Document does not exist")
+                    }
+                }
+                .addOnFailureListener { e ->
+                    Log.e("ProfileFragment", "Error getting document: ${e.message}")
+                }
+        } else {
+            Toast.makeText(context, "User not authenticated", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun updateListViewItems(userProfile: Map<String, Any>) {
+        val age = userProfile["age"] as? String ?: ""
+        val gender = userProfile["gender"] as? String ?: ""
+        val bodySize = userProfile["bodySize"] as? String ?: ""
+        val skinTone = userProfile["skinTone"] as? String ?: ""
+        val stylesList = userProfile["styles"] as? List<String> ?: emptyList()
+        val styles = stylesList.joinToString(", ")
+
+        // Determine the gender icon
+        val genderIcon = when (gender) {
+            "Male" -> R.drawable.male_24px
+            "Female" -> R.drawable.female_24px
+            "Others" -> R.drawable.transgender_24px
+            else -> R.drawable.accessibility_new_24px // Default icon if gender is not recognized
+        }
+
+        // Determine the skin tone icon and tint
+        val skinToneIcon = R.drawable.circle_24px
+        val skinToneColor = when (skinTone) {
+            "Fair" -> R.color.skin_tone_fair
+            "Light" -> R.color.skin_tone_light
+            "Medium" -> R.color.skin_tone_medium
+            "Tan" -> R.color.skin_tone_tan
+            "Dark" -> R.color.skin_tone_dark
+            else -> null // No tint if skin tone is not recognized
+        }
+
+        val skinToneTint = skinToneColor?.let { ContextCompat.getColor(requireContext(), it) }
+
+        // Create new list items that include the user data
+        val newItems = listOf(
+            ProfileItem(null, "Body Profile"), // Keep the "Body Profile" as is
+            ProfileItem(null, "Age", age), //Set age to be value instead of the title
+            ProfileItem(genderIcon, "Gender", gender), // Set custom icon for gender and gender to be value
+            ProfileItem(null, "Body Size", bodySize), //Set body size to be value instead of the title
+            ProfileItem(skinToneIcon, "Skin Tone", skinTone, skinToneTint), // Set custom icon and tint for skin tone and skin tone to be value
+            ProfileItem(null, "Your Preference"),
+            ProfileItem(null, "Style", styles), // Set styles to be value instead of the title
+            ProfileItem(R.drawable.redeem_subscription_24px, "Subscription"),
+            ProfileItem(R.drawable.credit_card_clock_24px, "Payment History"),
+            ProfileItem(R.drawable.settings_24px, "Settings"),
+            ProfileItem(R.drawable.logout_24px, "Logout"),
+            ProfileItem(R.drawable.delete_24px, "Delete Account")
+        )
+
+        // Update the adapter with the new items and refresh the ListView
+        (listView.adapter as ProfileAdapter).also {
+            it.clear()
+            it.addAll(newItems)
+            it.notifyDataSetChanged()
+        }
     }
 
     private fun logout() {
         googleSignInClient.signOut().addOnCompleteListener {
-
             FirebaseAuth.getInstance().signOut()
-
             Toast.makeText(context, "Logged out successfully", Toast.LENGTH_SHORT).show()
-
-            // Redirect to LoginActivity
             val intent = Intent(requireContext(), MainActivity::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)
             requireActivity().finish()
-
         }
     }
 
@@ -101,7 +194,6 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
             profileName.text = account.displayName ?: "No Name"
             profileEmail.text = account.email ?: "No Email"
 
-            // Load Profile Image using Glide
             Glide.with(this)
                 .load(account.photoUrl)
                 .placeholder(R.drawable.ic_launcher_foreground)
@@ -110,5 +202,44 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         } else {
             Toast.makeText(context, "No Google Account Found", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    private fun deleteAccount() {
+        AlertDialog.Builder(context)
+            .setTitle("Delete Account")
+            .setMessage("Are you sure you want to delete your account?")
+            .setPositiveButton("Delete") { dialog, which ->
+                val user = auth.currentUser
+                if (user != null) {
+                    // Delete user data from Firestore
+                    val emailKey = user.email ?: "No_Email"
+                    firestore.collection("users").document(emailKey)
+                        .delete()
+                        .addOnSuccessListener {
+                            Log.d("ProfileFragment", "User data deleted from Firestore")
+                            // Delete the Firebase user
+                            user.delete()
+                                .addOnCompleteListener { task ->
+                                    if (task.isSuccessful) {
+                                        Log.d("ProfileFragment", "User account deleted from Firebase")
+                                        Toast.makeText(context, "Account deleted successfully", Toast.LENGTH_SHORT).show()
+                                        startActivity(Intent(context, MainActivity::class.java))
+
+                                    } else {
+                                        Log.e("ProfileFragment", "Error deleting user account: ${task.exception?.message}")
+                                        Toast.makeText(context, "Error deleting account", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                        }
+                        .addOnFailureListener { e ->
+                            Log.e("ProfileFragment", "Error deleting user data from Firestore: ${e.message}")
+                            Toast.makeText(context, "Error deleting account data", Toast.LENGTH_SHORT).show()
+                        }
+                } else {
+                    Toast.makeText(context, "User not authenticated", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 }

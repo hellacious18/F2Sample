@@ -1,3 +1,10 @@
 package com.example.f2sample.data
 
-data class ProfileItem(val icon: Int, val title: String)
+import androidx.annotation.DrawableRes
+
+data class ProfileItem(
+    @DrawableRes val icon: Int?,
+    val title: String,
+    val value: String? = null,
+    val iconTint: Int? = null
+)
