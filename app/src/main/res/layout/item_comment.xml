@@ -26,6 +26,7 @@
         android:layout_margin="5dp"
         android:textColor="@color/black"
         android:textStyle="bold"
+        android:fontFamily="sans-serif"
         app:layout_constraintEnd_toStartOf="@+id/commentTime"
         app:layout_constraintStart_toEndOf="@+id/commentUserProfilePicture"
         app:layout_constraintTop_toTopOf="parent" />
@@ -35,6 +36,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="5dp"
+        android:fontFamily="sans-serif"
         android:text="This is a sample comment"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/commentUserProfilePicture"

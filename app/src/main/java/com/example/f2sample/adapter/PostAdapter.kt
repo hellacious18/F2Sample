@@ -289,7 +289,6 @@ class PostAdapter(
         val likeButton: ImageButton = itemView.findViewById(R.id.likeButton)
         val likeCountText: TextView = itemView.findViewById(R.id.likeCountText)
         val commentButton: ImageButton = itemView.findViewById(R.id.commentButton)
-        val shareButton: ImageButton = itemView.findViewById(R.id.shareButton)
         val postCommentButton: ImageButton = itemView.findViewById(R.id.postCommentButton)
         val editTextComment: EditText = itemView.findViewById(R.id.editTextComment)
         val commentSection: View = itemView.findViewById(R.id.commentSection)

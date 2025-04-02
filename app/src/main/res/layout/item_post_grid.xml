@@ -28,7 +28,8 @@
             android:layout_margin="4dp"
             android:src="@drawable/star_yellow_24dp"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/textViewAvgRatings" />
+            app:layout_constraintEnd_toStartOf="@+id/textViewAvgRatings"
+            app:tint="@color/secondary" />
 
         <TextView
             android:id="@+id/textViewAvgRatings"

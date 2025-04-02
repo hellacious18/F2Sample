@@ -121,7 +121,7 @@
                 android:focusable="true"
                 android:padding="8dp"
                 android:src="@drawable/star_24px"
-                app:tint="@color/primaryVariant" />
+                app:tint="@color/secondary" />
 
             <TextView
                 android:id="@+id/ratingCount"
@@ -178,18 +178,6 @@
                 android:text="0"
                 android:textColor="@color/onSurface"
                 android:textSize="16sp" />
-
-            <ImageButton
-                android:id="@+id/shareButton"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:clickable="true"
-                android:focusable="true"
-                android:contentDescription="Share"
-                android:padding="8dp"
-                android:src="@drawable/share_24px"
-                app:tint="@color/primaryVariant" />
         </LinearLayout>
 
         <RatingBar
@@ -212,40 +200,59 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/actionButtonsLayout">
 
-            <EditText
-                android:id="@+id/editTextComment"
-                android:layout_width="0dp"
+            <LinearLayout
+                android:id="@+id/linearLayout"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Add a comment..."
-                android:textColorHint="@color/onSurface"
-                android:textColor="@color/onSurface"
-                android:padding="12dp"
-                android:layout_margin="8dp"
-                app:layout_constraintEnd_toStartOf="@+id/postCommentButton"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-
-            <ImageButton
-                android:id="@+id/postCommentButton"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:clickable="true"
-                android:focusable="true"
-                android:src="@drawable/send_24px"
-                app:tint="@color/primaryVariant"
+                android:background="@drawable/input_bar_background"
+                android:elevation="2dp"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="4dp"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+
+                <EditText
+                    android:id="@+id/editTextComment"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@android:color/transparent"
+                    android:fontFamily="sans-serif-light"
+                    android:hint="Add a comment..."
+                    android:textSize="16sp"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="8dp"
+                    android:textColor="@color/onSurface"
+                    android:textColorHint="@color/onSurface"
+                    app:layout_constraintEnd_toStartOf="@+id/postCommentButton"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <ImageButton
+                    android:id="@+id/postCommentButton"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:src="@drawable/send_24px"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:tint="@color/primaryVariant" />
+            </LinearLayout>
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerViewComment"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_height="90dp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/editTextComment" />
+                app:layout_constraintTop_toBottomOf="@+id/linearLayout" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
