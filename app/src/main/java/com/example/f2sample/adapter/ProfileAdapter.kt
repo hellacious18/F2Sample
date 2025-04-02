@@ -60,11 +60,12 @@ class ProfileAdapter(private val context: Context, private val items: MutableLis
             }
         }
 
-        if (item.title in listOf("Body Profile", "Your Preference","Subscription", "Payment History", "Settings", "Logout", "Delete Account")) {
+        if (item.title in listOf("Body Profile", "Your Preference","Subscription", "Payment History", "Settings", "Logout")) {
             titleView.setTypeface(null, android.graphics.Typeface.BOLD)
         }
 
         if (item.title == "Delete Account") {
+            titleView.setTypeface(null, android.graphics.Typeface.BOLD)
             titleView.setTextColor(ContextCompat.getColor(context, R.color.error)) // Set text color to red
             iconView.setColorFilter(ContextCompat.getColor(context, R.color.error)) // Set icon color to red
         }
