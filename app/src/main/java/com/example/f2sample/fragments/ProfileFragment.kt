@@ -67,10 +67,10 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
             // **Preferences**
             ProfileItem(null, "Your Preference"),
             ProfileItem(null, "Style"),
-
-            // **Account & Subscription**
-            ProfileItem(R.drawable.redeem_subscription_24px, "Subscription"),
-            ProfileItem(R.drawable.credit_card_clock_24px, "Payment History"),
+//
+//            // **Account & Subscription**
+//            ProfileItem(R.drawable.redeem_subscription_24px, "Subscription"),
+//            ProfileItem(R.drawable.credit_card_clock_24px, "Payment History"),
 
             // **Settings & Logout**
             ProfileItem(R.drawable.settings_24px, "Settings"),
@@ -85,10 +85,10 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
             when (position) {
                 0 -> startActivity(Intent(context, AboutMeActivity::class.java))
                 5 -> startActivity(Intent(context, AboutMeActivity::class.java))
-                7 -> startActivity(Intent(context, PaymentActivity::class.java))
-                8 -> startActivity(Intent(context, PaymentHistoryActivity::class.java))
-                10 -> logout()
-                11 -> deleteAccount() // Call the deleteAccount function
+//                7 -> startActivity(Intent(context, PaymentActivity::class.java))
+//                8 -> startActivity(Intent(context, PaymentHistoryActivity::class.java))
+                8 -> logout()
+                9 -> deleteAccount() // Call the deleteAccount function
             }
         }
 
@@ -161,8 +161,8 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
             ProfileItem(skinToneIcon, "Skin Tone", skinTone, skinToneTint), // Set custom icon and tint for skin tone and skin tone to be value
             ProfileItem(null, "Your Preference"),
             ProfileItem(null, "Style", styles), // Set styles to be value instead of the title
-            ProfileItem(R.drawable.redeem_subscription_24px, "Subscription"),
-            ProfileItem(R.drawable.credit_card_clock_24px, "Payment History"),
+//            ProfileItem(R.drawable.redeem_subscription_24px, "Subscription"),
+//            ProfileItem(R.drawable.credit_card_clock_24px, "Payment History"),
             ProfileItem(R.drawable.settings_24px, "Settings"),
             ProfileItem(R.drawable.logout_24px, "Logout"),
             ProfileItem(R.drawable.delete_24px, "Delete Account")

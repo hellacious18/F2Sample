@@ -52,7 +52,7 @@ class HomeActivity : AppCompatActivity() {
         }
 
         if (savedInstanceState == null) {
-            loadFragment(ProfileFragment())
+            loadFragment(BeautyFragment())
         }
     }
 
