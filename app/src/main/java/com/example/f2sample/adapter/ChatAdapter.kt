@@ -13,7 +13,7 @@ import com.example.f2sample.R
 import com.example.f2sample.data.Message
 import io.noties.markwon.Markwon
 
-class ChatAdapter(private val messages: List<Message>) :
+class ChatAdapter(val messages: MutableList<Message>) :
     RecyclerView.Adapter<ChatAdapter.MessageViewHolder>() {
 
     inner class MessageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -66,8 +66,22 @@ class ChatAdapter(private val messages: List<Message>) :
         } else {
             holder.messageImage.visibility = View.GONE
         }
-
     }
 
     override fun getItemCount(): Int = messages.size
+
+    fun updateLastMessageText(newText: String) {
+        if (messages.isNotEmpty()) {
+            val lastMessage = messages.last()
+            if (!lastMessage.isUser) { // Only allow AI message updates
+                messages[messages.size - 1] = lastMessage.copy(text = newText)
+                notifyItemChanged(messages.size - 1)
+            }
+        }
+    }
+
+    fun addMessage(message: Message) {
+        messages.add(message)
+        notifyItemInserted(messages.size - 1)
+    }
 }

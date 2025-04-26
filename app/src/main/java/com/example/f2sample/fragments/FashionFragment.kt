@@ -8,17 +8,8 @@ import android.os.Bundle
 import android.os.Handler
 import android.provider.MediaStore
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.Button
-import android.widget.EditText
-import android.widget.FrameLayout
-import android.widget.ImageButton
-import android.widget.ImageView
-import android.widget.PopupMenu
-import android.widget.ProgressBar
-import android.widget.Toast
+import android.view.*
+import android.widget.*
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.isVisible
@@ -52,17 +43,32 @@ class FashionFragment : Fragment(R.layout.fragment_fashion) {
     private var fashionFragmentOverlay: FrameLayout? = null
     private var upgradeButton: Button? = null
     private lateinit var backgroundImageView: ImageView
-    private lateinit var verticalMenu: ImageView
+    private lateinit var verticalMenu: ImageView // Declare the ImageView
 
     private var imageBitmap: Bitmap? = null
     private var uploadedImageUrl: String? = null
+
+    // User profile context fields
+    private var profAge = ""
+    private var profGender = ""
+    private var profBodySize = ""
+    private var profSkinTone = ""
+    private var profStyles = ""
+
+    // Maintain local conversation history for context memory.
     private val conversationHistory = mutableListOf<Message>()
+
+    // Firebase services
     private val db = FirebaseFirestore.getInstance()
     private val storage = FirebaseStorage.getInstance()
+    // Using gemini-2.0-flash model; adjust as needed.
     private val generativeModel = Firebase.vertexAI.generativeModel("gemini-2.0-flash")
+    // Save chats using the current user's email (or default)
     private val userId = FirebaseAuth.getInstance().currentUser?.email ?: "guest@example.com"
+
     private lateinit var imagePickerLauncher: ActivityResultLauncher<Intent>
-    private val imageResources = intArrayOf(
+
+    private val imageResources = intArrayOf( // Add this array
         R.drawable.fashion1,
         R.drawable.fashion2,
         R.drawable.fashion3,
@@ -70,40 +76,40 @@ class FashionFragment : Fragment(R.layout.fragment_fashion) {
         R.drawable.fashion5,
         R.drawable.fashion6
     )
-    private var currentImageIndex = 0
-    private val handler = Handler()
-    private val interval: Long = 3000
+    private var currentImageIndex = 0 // Add this variable
+    private val handler = Handler() // Add this Handler
+    private val interval: Long = 3000 // 3 seconds // Add this variable
 
-    private val imageSwitcherRunnable = object : Runnable {
+    private val imageSwitcherRunnable = object : Runnable { // Add this Runnable
         override fun run() {
+            // Fade out animation
             backgroundImageView.animate().alpha(0f).setDuration(1000).withEndAction {
+                // Change image
                 currentImageIndex = (currentImageIndex + 1) % imageResources.size
                 backgroundImageView.setImageResource(imageResources[currentImageIndex])
+
+                // Fade in animation
                 backgroundImageView.animate().alpha(0.3f).setDuration(1000).start()
             }.start()
             handler.postDelayed(this, interval)
         }
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(R.layout.fragment_fashion, container, false)
 
-        inputField = view.findViewById(R.id.inputFieldF)
-        sendButton = view.findViewById(R.id.sendButtonF)
-        uploadButton = view.findViewById(R.id.uploadButtonF)
-        imageView = view.findViewById(R.id.imageViewF)
-        recyclerView = view.findViewById(R.id.recyclerViewFashionFragment)
-        progressBar = view.findViewById(R.id.progressBarF)
+        inputField = view.findViewById(R.id.inputField)
+        sendButton = view.findViewById(R.id.sendButton)
+        uploadButton = view.findViewById(R.id.uploadButton)
+        imageView = view.findViewById(R.id.imageView)
+        recyclerView = view.findViewById(R.id.recylerViewFashionFragment)
         fashionFragmentOverlay = view.findViewById(R.id.fashionFragmentOverlay)
-        upgradeButton = view.findViewById(R.id.upgradeButtonF)
-        backgroundImageView = view.findViewById(R.id.backgroundImageView)
-        verticalMenu = view.findViewById(R.id.deleteChatF)
+        upgradeButton = view.findViewById(R.id.upgradeButton)
+        progressBar = view.findViewById(R.id.progressBar)
+        backgroundImageView = view.findViewById(R.id.backgroundImageView) // Initialize here
+        verticalMenu = view.findViewById(R.id.verticalMenu) // Initialize the verticalMenu
 
-        chatAdapter = ChatAdapter(emptyList())
+        chatAdapter = ChatAdapter(mutableListOf())
         recyclerView.layoutManager = LinearLayoutManager(context)
         recyclerView.adapter = chatAdapter
 
@@ -111,52 +117,106 @@ class FashionFragment : Fragment(R.layout.fragment_fashion) {
         uploadButton.setOnClickListener { pickImageFromGallery() }
 
         upgradeButton?.setOnClickListener {
+            // Open premium upgrade page
             val intent = Intent(requireContext(), PaymentActivity::class.java)
             startActivity(intent)
         }
-        verticalMenu.setOnClickListener { showPopupMenu(verticalMenu) }
+        verticalMenu.setOnClickListener { showPopupMenu(verticalMenu) } // Setup click listener
 
-        imagePickerLauncher =
-            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-                if (result.resultCode == Activity.RESULT_OK && result.data != null) {
-                    val imageUri = result.data?.data
-                    imageUri?.let { uri ->
-                        handleImageSelection(uri)
-                    }
+
+        // Initialize ActivityResultLauncher
+        imagePickerLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK && result.data != null) {
+                val imageUri = result.data?.data
+                imageUri?.let { uri ->
+                    handleImageSelection(uri)
                 }
             }
+        }
 
-        backgroundImageView.setImageResource(imageResources[0])
-        backgroundImageView.alpha = 0.3f
-        handler.post(imageSwitcherRunnable)
+        loadProfileContext()
 
         listenForMessages()
         getFashionChatsCount()
 
+        backgroundImageView.setImageResource(imageResources[0]) // Set initial image
+        backgroundImageView.alpha = 0.3f // Initial alpha value
+        handler.post(imageSwitcherRunnable) // Start the image switching
+
         return view
     }
+    private fun loadProfileContext() {
+        db.collection("users").document(userId).get()
+            .addOnSuccessListener { doc ->
+                val profile = doc.get("userProfile") as? Map<*, *> ?: emptyMap<Any,Any>()
+                profAge = profile["age"] as? String ?: ""
+                profGender = profile["gender"] as? String ?: ""
+                profBodySize = profile["bodySize"] as? String ?: ""
+                profSkinTone = profile["skinTone"] as? String ?: ""
+                profStyles = (profile["styles"] as? List<*>)?.joinToString(", ") ?: ""
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        handler.removeCallbacks(imageSwitcherRunnable)
+                sendIntroMessage()
+            }
+            .addOnFailureListener { e ->
+                Log.e("FashionFragment", "Error loading profile: ${e.message}")
+                sendIntroMessage()
+            }
     }
+
+    private fun sendIntroMessage() {
+        val name = FirebaseAuth.getInstance().currentUser?.displayName ?: "there"
+        val intro = buildString {
+            append("✨ Hello, $name! ✨\n\n")
+
+            var hasDetails = false
+
+            if (profBodySize.isNotEmpty()) {
+                append("Body size: $profBodySize. ")
+                hasDetails = true
+            }
+            if (profStyles.isNotEmpty()) {
+                append("Style mood: $profStyles. ")
+                hasDetails = true
+            }
+
+            if (!hasDetails) {
+                append("👗 Your fashion profile is still waiting for your input. Please fill it out in the *Profile Section* to get your personalized outfit recommendations. ✨\n\n")
+            }
+
+            append("\n💃 Just a heads-up: I’m here for full-body analysis and the latest outfit trends. For beauty tips and face glam, head over to the *Beauty Chat*.\n\n")
+            append("Ready to serve looks? Let’s curate an outfit that speaks your style. 🌟👠")
+        }
+
+        val introMsg = Message(text = intro, imageUrl = null, isUser = false)
+        conversationHistory.add(introMsg)
+        chatAdapter.addMessage(introMsg)
+        recyclerView.scrollToPosition(chatAdapter.itemCount - 1)
+    }
+
+
+    override fun onDestroyView() { // Override onDestroyView
+        super.onDestroyView()
+        handler.removeCallbacks(imageSwitcherRunnable) // Stop the animation
+    }
+
 
     private fun pickImageFromGallery() {
         val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
         imagePickerLauncher.launch(intent)
     }
 
-    private fun showPopupMenu(view: View) {
+    private fun showPopupMenu(view: View) { // Add popup menu
         val popupMenu = PopupMenu(requireContext(), view)
         popupMenu.menuInflater.inflate(R.menu.vertical_menu, popupMenu.menu)
 
         popupMenu.setOnMenuItemClickListener { item ->
             when (item.itemId) {
                 R.id.action_delete_post -> {
+                    // Delete the chat
                     deleteAllMessages()
-                    return@setOnMenuItemClickListener true
+                    true
                 }
-                else -> return@setOnMenuItemClickListener false
+                else -> false
             }
         }
         popupMenu.show()
@@ -194,16 +254,20 @@ class FashionFragment : Fragment(R.layout.fragment_fashion) {
         imageView.isVisible = false
 
         val message = Message(
-            text = userMessage.ifEmpty { "Analyze outfit" },
+            text = userMessage.ifEmpty { "Analyze my outfit" },
             imageUrl = uploadedImageUrl,
             isUser = true
         )
 
         saveMessageToFirestore(message)
         conversationHistory.add(message)
+
+        chatAdapter.addMessage(message)
+        recyclerView.scrollToPosition(chatAdapter.itemCount - 1)
+
         updateChatUI(conversationHistory)
 
-        getAIResponse(userMessage.ifEmpty { "Analyze outfit" }, imageBitmap)
+        getAIResponse(userMessage.ifEmpty { "Analyze my outfit" }, imageBitmap)
 
         imageBitmap = null
         uploadedImageUrl = null
@@ -213,11 +277,11 @@ class FashionFragment : Fragment(R.layout.fragment_fashion) {
     private fun uploadImageToFirebaseStorage(imageUri: Uri, onUploadComplete: (String?) -> Unit) {
         lifecycleScope.launch {
             try {
-                val storageRef = storage.reference.child("fashion_images/${UUID.randomUUID()}.jpg")
+                val storageRef = storage.reference.child("images/${UUID.randomUUID()}.jpg")
                 val uploadTask = storageRef.putFile(imageUri)
-                uploadTask.await()
+                uploadTask.await() // Wait for upload to complete
 
-                val uri = storageRef.downloadUrl.await()
+                val uri = storageRef.downloadUrl.await() // Get the download URL
                 onUploadComplete(uri.toString())
             } catch (e: Exception) {
                 Log.e("FashionFragment", "Error uploading image: ${e.message}", e)
@@ -229,17 +293,24 @@ class FashionFragment : Fragment(R.layout.fragment_fashion) {
     private fun getAIResponse(userMessage: String, promptBitmap: Bitmap?) {
         lifecycleScope.launch {
             try {
-                val contextString = conversationHistory.takeLast(10).joinToString(separator = "\n") { msg ->
+
+                val profileContext = buildString {
+                    if (profAge.isNotEmpty()) append("Age: $profAge; ")
+                    if (profGender.isNotEmpty()) append("Gender: $profGender; ")
+                    if (profBodySize.isNotEmpty()) append("Body size: $profBodySize; ")
+                    if (profSkinTone.isNotEmpty()) append("Skin tone: $profSkinTone; ")
+                    if (profStyles.isNotEmpty()) append("Styles: $profStyles; ")
+                }
+
+                val historyContext = conversationHistory.takeLast(10).joinToString("\n") { msg ->
                     if (msg.isUser) "User: ${msg.text}" else "AI: ${msg.text}"
                 }
 
-                val instructions =
-                    "Analyze the outfit in the image and provide fashion recommendations. Suggest suitable styles, colors, and accessories based on body shape. If no human body is detected, ask for a clearer image."
+                val instructions = "Analyze the provided image for full-body features and offer stylish outfit recommendations. Provide detailed fashion suggestions only when explicitly requested by the user. If no clear full-body image is detected, inform the user once without repeatedly asking for another image. Keep the conversation focused on fashion, outfit styling, and body shape analysis."
 
                 val fullPromptText = buildString {
-                    if (contextString.isNotEmpty()) {
-                        append("$contextString\n")
-                    }
+                    append(profileContext).append("\n")
+                    append(historyContext).append("\n")
                     append("User: $userMessage\n")
                     append("AI Instructions: $instructions")
                 }
@@ -250,28 +321,44 @@ class FashionFragment : Fragment(R.layout.fragment_fashion) {
                 }
 
                 val responseBuilder = StringBuilder()
+
+                // Create a placeholder message and add to the chat (only once)
+                var streamingMessage: Message? = null
+                if (conversationHistory.isEmpty() || conversationHistory.last().text!!.isEmpty()) {
+                    streamingMessage = Message(
+                        text = "",  // Empty message initially
+                        imageUrl = null,
+                        isUser = false
+                    )
+                    conversationHistory.add(streamingMessage)
+                    chatAdapter.addMessage(streamingMessage)
+                    recyclerView.scrollToPosition(chatAdapter.itemCount - 1)
+                }
+
+                // Streaming content handling
                 generativeModel.generateContentStream(prompt).collect { chunk ->
                     chunk.text?.let {
                         responseBuilder.append(it)
-                        val streamingMessage = Message(
-                            text = responseBuilder.toString(),
-                            imageUrl = null,
-                            isUser = false
-                        )
-                        val updatedList = conversationHistory + streamingMessage
-                        updateChatUI(updatedList)
+                        // Only update the last message (streamingMessage) with the new content
+                        streamingMessage?.let { msg ->
+                            chatAdapter.updateLastMessageText(responseBuilder.toString())
+                            recyclerView.scrollToPosition(chatAdapter.itemCount - 1)
+                        }
                     }
                 }
 
+                // Final AI response (only add once, without "AI:" prefix)
                 val aiResponseMessage = Message(
-                    text = responseBuilder.toString(),
+                    text = responseBuilder.toString(),  // No "AI:" prefix here
                     imageUrl = null,
                     isUser = false
                 )
 
                 saveMessageToFirestore(aiResponseMessage)
                 conversationHistory.add(aiResponseMessage)
-                updateChatUI(conversationHistory)
+                chatAdapter.addMessage(aiResponseMessage)
+                recyclerView.scrollToPosition(chatAdapter.itemCount - 1)
+
             } catch (e: Exception) {
                 Log.e("FashionFragment", "Error getting AI response: ${e.message}", e)
                 val errorMessage = Message(
@@ -281,7 +368,8 @@ class FashionFragment : Fragment(R.layout.fragment_fashion) {
                 )
                 saveMessageToFirestore(errorMessage)
                 conversationHistory.add(errorMessage)
-                updateChatUI(conversationHistory)
+                chatAdapter.addMessage(errorMessage)  // Add error message
+                recyclerView.scrollToPosition(chatAdapter.itemCount - 1)
             }
         }
     }
@@ -305,11 +393,7 @@ class FashionFragment : Fragment(R.layout.fragment_fashion) {
                 Log.d("FashionFragment", "All messages deleted successfully!")
             } catch (e: Exception) {
                 Log.e("FashionFragment", "Error deleting messages: ${e.message}", e)
-                Toast.makeText(
-                    requireContext(),
-                    "Error deleting messages",
-                    Toast.LENGTH_SHORT
-                ).show()
+                Toast.makeText(requireContext(), "Error deleting messages", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -352,10 +436,17 @@ class FashionFragment : Fragment(R.layout.fragment_fashion) {
     private fun updateChatUI(messages: List<Message>) {
         if (isAdded) {
             requireActivity().runOnUiThread {
-                chatAdapter = ChatAdapter(messages)
-                recyclerView.layoutManager = LinearLayoutManager(context)
-                recyclerView.adapter = chatAdapter
-                recyclerView.scrollToPosition(messages.size - 1)
+                // Directly update the adapter's message list and notify the changes
+                val diff = messages.size - chatAdapter.itemCount
+
+                // If there are new messages, add them to the adapter
+                if (diff > 0) {
+                    chatAdapter.messages.addAll(messages.subList(chatAdapter.itemCount, messages.size))
+                    chatAdapter.notifyItemRangeInserted(chatAdapter.itemCount, diff)
+                }
+
+                // Scroll to the latest message
+                recyclerView.scrollToPosition(chatAdapter.itemCount - 1)
             }
         }
     }
@@ -363,15 +454,17 @@ class FashionFragment : Fragment(R.layout.fragment_fashion) {
     private fun getFashionChatsCount() {
         val userRef = db.collection("users").document(userId)
 
+        var subscription: String? = null
+
         userRef.get().addOnSuccessListener { userSnapshot ->
-            val info = userSnapshot.get("info") as? Map<*, *>?
-            val subscription = info?.get("subscription") as? String ?: "Free Plan (Default)"
+            val info = userSnapshot.get("info") as? Map<*, *>
+            subscription = info?.get("subscription") as? String ?: "Free Plan (Default)"
 
             userRef.collection("fashion_chats").get()
                 .addOnSuccessListener { snapshot ->
                     val count = snapshot.size()
 
-                    if (isAdded) {
+                    if (isAdded) { // Check if Fragment is attached
                         requireActivity().runOnUiThread {
                             fashionFragmentOverlay?.isVisible =
                                 subscription?.lowercase() == "free plan (default)" && count > 20

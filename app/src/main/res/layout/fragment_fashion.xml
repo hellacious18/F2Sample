@@ -19,7 +19,7 @@
         android:alpha="0.3"/>
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/topBarLayoutF"
+        android:id="@+id/topBarLayout"
         android:layout_width="match_parent"
         android:layout_height="80dp"
         android:background="@drawable/top_bar_gradient"
@@ -31,24 +31,24 @@
         app:layout_constraintEnd_toEndOf="parent">
 
         <TextView
-            android:id="@+id/chatTitleF"
+            android:id="@+id/chatTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="sans-serif-medium"
             android:text="Fashion Chat"
             android:textColor="@color/onPrimary"
-            android:textSize="20sp"
+            android:textSize="20dp"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"/>
+            app:layout_constraintStart_toStartOf="parent" />
 
         <ImageView
-            android:id="@+id/deleteChatF"
+            android:id="@+id/verticalMenu"
             android:layout_width="24dp"
             android:layout_height="24dp"
-            android:contentDescription="Options"
+            android:contentDescription="Profile"
             android:src="@drawable/vert_menu_24px"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"/>
+            app:layout_constraintEnd_toEndOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -63,10 +63,10 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/topBarLayoutF">
+        app:layout_constraintTop_toBottomOf="@+id/topBarLayout">
 
         <Button
-            android:id="@+id/upgradeButtonF"
+            android:id="@+id/upgradeButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
@@ -82,20 +82,21 @@
             android:translationZ="4dp"/>
     </FrameLayout>
 
+
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerViewFashionFragment"
+        android:id="@+id/recylerViewFashionFragment"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:scrollbars="vertical"
         android:paddingHorizontal="16dp"
         android:paddingBottom="8dp"
-        app:layout_constraintBottom_toTopOf="@+id/inputBarLayoutF"
+        app:layout_constraintBottom_toTopOf="@+id/inputBarLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/topBarLayoutF" />
+        app:layout_constraintTop_toBottomOf="@+id/topBarLayout" />
 
     <LinearLayout
-        android:id="@+id/inputBarLayoutF"
+        android:id="@+id/inputBarLayout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
@@ -111,7 +112,7 @@
         app:layout_constraintStart_toStartOf="parent">
 
         <EditText
-            android:id="@+id/inputFieldF"
+            android:id="@+id/inputField"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -124,7 +125,7 @@
             android:paddingHorizontal="12dp"/>
 
         <ImageButton
-            android:id="@+id/uploadButtonF"
+            android:id="@+id/uploadButton"
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:layout_margin="10dp"
@@ -132,7 +133,7 @@
             android:contentDescription="Upload Image"/>
 
         <ImageButton
-            android:id="@+id/sendButtonF"
+            android:id="@+id/sendButton"
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:layout_margin="10dp"
@@ -142,18 +143,18 @@
     </LinearLayout>
 
     <ProgressBar
-        android:id="@+id/progressBarF"
+        android:id="@+id/progressBar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:visibility="gone"
         android:elevation="3dp"
-        app:layout_constraintBottom_toBottomOf="@+id/imageViewF"
-        app:layout_constraintEnd_toEndOf="@+id/imageViewF"
-        app:layout_constraintStart_toStartOf="@+id/imageViewF"
-        app:layout_constraintTop_toTopOf="@+id/imageViewF" />
+        app:layout_constraintBottom_toBottomOf="@+id/imageView"
+        app:layout_constraintEnd_toEndOf="@+id/imageView"
+        app:layout_constraintStart_toStartOf="@+id/imageView"
+        app:layout_constraintTop_toTopOf="@+id/imageView" />
 
     <ImageView
-        android:id="@+id/imageViewF"
+        android:id="@+id/imageView"
         android:layout_width="80dp"
         android:layout_height="80dp"
         android:layout_margin="8dp"
@@ -161,7 +162,7 @@
         android:clipToOutline="true"
         android:visibility="gone"
         android:background="@drawable/user_message_bubble"
-        app:layout_constraintBottom_toTopOf="@+id/inputBarLayoutF"
+        app:layout_constraintBottom_toTopOf="@+id/inputBarLayout"
         app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

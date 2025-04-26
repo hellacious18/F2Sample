@@ -227,7 +227,7 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
 
                                     } else {
                                         Log.e("ProfileFragment", "Error deleting user account: ${task.exception?.message}")
-                                        Toast.makeText(context, "Error deleting account", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(context, "Login again after Logout for deletion", Toast.LENGTH_SHORT).show()
                                     }
                                 }
                         }

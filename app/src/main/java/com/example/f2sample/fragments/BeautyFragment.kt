@@ -48,6 +48,13 @@ class BeautyFragment : Fragment(R.layout.fragment_beauty) {
     private var imageBitmap: Bitmap? = null
     private var uploadedImageUrl: String? = null
 
+    // User profile context fields
+    private var profAge = ""
+    private var profGender = ""
+    private var profBodySize = ""
+    private var profSkinTone = ""
+    private var profStyles = ""
+
     // Maintain local conversation history for context memory.
     private val conversationHistory = mutableListOf<Message>()
 
@@ -102,7 +109,7 @@ class BeautyFragment : Fragment(R.layout.fragment_beauty) {
         backgroundImageView = view.findViewById(R.id.backgroundImageView) // Initialize here
         verticalMenu = view.findViewById(R.id.verticalMenu) // Initialize the verticalMenu
 
-        chatAdapter = ChatAdapter(emptyList())
+        chatAdapter = ChatAdapter(mutableListOf())
         recyclerView.layoutManager = LinearLayoutManager(context)
         recyclerView.adapter = chatAdapter
 
@@ -127,6 +134,8 @@ class BeautyFragment : Fragment(R.layout.fragment_beauty) {
             }
         }
 
+        loadProfileContext()
+
         listenForMessages()
         getBeautyChatsCount()
 
@@ -136,6 +145,66 @@ class BeautyFragment : Fragment(R.layout.fragment_beauty) {
 
         return view
     }
+    private fun loadProfileContext() {
+        db.collection("users").document(userId).get()
+            .addOnSuccessListener { doc ->
+                val profile = doc.get("userProfile") as? Map<*, *> ?: emptyMap<Any,Any>()
+                profAge = profile["age"] as? String ?: ""
+                profGender = profile["gender"] as? String ?: ""
+                profBodySize = profile["bodySize"] as? String ?: ""
+                profSkinTone = profile["skinTone"] as? String ?: ""
+                profStyles = (profile["styles"] as? List<*>)?.joinToString(", ") ?: ""
+
+                sendIntroMessage()
+            }
+            .addOnFailureListener { e ->
+                Log.e("BeautyFragment", "Error loading profile: ${e.message}")
+                sendIntroMessage()
+            }
+    }
+
+    private fun sendIntroMessage() {
+        val name = FirebaseAuth.getInstance().currentUser?.displayName ?: "there"
+        val intro = buildString {
+            append("✨ Welcome to your personal beauty experience, $name. ✨\n\n")
+
+            var hasDetails = false
+
+            if (profAge.isNotEmpty()) {
+                append("Age: $profAge. ")
+                hasDetails = true
+            }
+            if (profGender.isNotEmpty()) {
+                append("Gender: $profGender. ")
+                hasDetails = true
+            }
+            if (profBodySize.isNotEmpty()) {
+                append("Body size: $profBodySize. ")
+                hasDetails = true
+            }
+            if (profSkinTone.isNotEmpty()) {
+                append("Skin tone: $profSkinTone. ")
+                hasDetails = true
+            }
+            if (profStyles.isNotEmpty()) {
+                append("Style preferences: $profStyles. ")
+                hasDetails = true
+            }
+
+            if (!hasDetails) {
+                append("🔎 Your beauty profile is still a blank canvas. For the best personalized recommendations, please complete it in the *Profile Section*. ✨\n\n")
+            }
+
+            append("\n\nA gentle reminder: I specialize exclusively in beauty and face aesthetics. For a full-body transformation, be sure to visit the *Fashion Chat*.\n\n")
+            append("Let’s unlock your beauty potential. The first step toward radiance begins now. 🌸")
+        }
+
+        val introMsg = Message(text = intro, imageUrl = null, isUser = false)
+        conversationHistory.add(introMsg)
+        chatAdapter.addMessage(introMsg)
+        recyclerView.scrollToPosition(chatAdapter.itemCount - 1)
+    }
+
 
     override fun onDestroyView() { // Override onDestroyView
         super.onDestroyView()
@@ -188,7 +257,6 @@ class BeautyFragment : Fragment(R.layout.fragment_beauty) {
         }
     }
 
-
     private fun sendMessage() {
         val userMessage = inputField.text.toString().trim()
 
@@ -205,6 +273,10 @@ class BeautyFragment : Fragment(R.layout.fragment_beauty) {
 
         saveMessageToFirestore(message)
         conversationHistory.add(message)
+
+        chatAdapter.addMessage(message)
+        recyclerView.scrollToPosition(chatAdapter.itemCount - 1)
+
         updateChatUI(conversationHistory)
 
         getAIResponse(userMessage.ifEmpty { "Analyze image" }, imageBitmap)
@@ -213,7 +285,6 @@ class BeautyFragment : Fragment(R.layout.fragment_beauty) {
         uploadedImageUrl = null
         imageView.setImageBitmap(null)
     }
-
 
     private fun uploadImageToFirebaseStorage(imageUri: Uri, onUploadComplete: (String?) -> Unit) {
         lifecycleScope.launch {
@@ -231,20 +302,27 @@ class BeautyFragment : Fragment(R.layout.fragment_beauty) {
         }
     }
 
-
     private fun getAIResponse(userMessage: String, promptBitmap: Bitmap?) {
         lifecycleScope.launch {
             try {
-                val contextString = conversationHistory.takeLast(10).joinToString(separator = "\n") { msg ->
+
+                val profileContext = buildString {
+                    if (profAge.isNotEmpty()) append("Age: $profAge; ")
+                    if (profGender.isNotEmpty()) append("Gender: $profGender; ")
+                    if (profBodySize.isNotEmpty()) append("Body size: $profBodySize; ")
+                    if (profSkinTone.isNotEmpty()) append("Skin tone: $profSkinTone; ")
+                    if (profStyles.isNotEmpty()) append("Styles: $profStyles; ")
+                }
+
+                val historyContext = conversationHistory.takeLast(10).joinToString("\n") { msg ->
                     if (msg.isUser) "User: ${msg.text}" else "AI: ${msg.text}"
                 }
 
                 val instructions = "Analyze the provided image for facial features and offer brief beauty and skincare suggestions. Provide detailed recommendations only when requested. If no face is detected, inform the user once without repeatedly asking for another image. Keep the conversation focused on beauty, facial analysis, and skincare."
 
                 val fullPromptText = buildString {
-                    if (contextString.isNotEmpty()) {
-                        append("$contextString\n")
-                    }
+                    append(profileContext).append("\n")
+                    append(historyContext).append("\n")
                     append("User: $userMessage\n")
                     append("AI Instructions: $instructions")
                 }
@@ -255,28 +333,43 @@ class BeautyFragment : Fragment(R.layout.fragment_beauty) {
                 }
 
                 val responseBuilder = StringBuilder()
+
+                // Create a placeholder message and add to the chat (only once)
+                var streamingMessage: Message? = null
+                if (conversationHistory.isEmpty() || conversationHistory.last().text!!.isEmpty()) {
+                    streamingMessage = Message(
+                        text = "",  // Empty message initially
+                        imageUrl = null,
+                        isUser = false
+                    )
+                    conversationHistory.add(streamingMessage)
+                    chatAdapter.addMessage(streamingMessage)
+                    recyclerView.scrollToPosition(chatAdapter.itemCount - 1)
+                }
+
+                // Streaming content handling
                 generativeModel.generateContentStream(prompt).collect { chunk ->
                     chunk.text?.let {
                         responseBuilder.append(it)
-                        val streamingMessage = Message(
-                            text = responseBuilder.toString(),
-                            imageUrl = null,
-                            isUser = false
-                        )
-                        val updatedList = conversationHistory + streamingMessage
-                        updateChatUI(updatedList)
+                        // Only update the last message (streamingMessage) with the new content
+                        streamingMessage?.let { msg ->
+                            chatAdapter.updateLastMessageText(responseBuilder.toString())
+                            recyclerView.scrollToPosition(chatAdapter.itemCount - 1)
+                        }
                     }
                 }
 
+                // Final AI response (only add once, without "AI:" prefix)
                 val aiResponseMessage = Message(
-                    text = responseBuilder.toString(),
+                    text = responseBuilder.toString(),  // No "AI:" prefix here
                     imageUrl = null,
                     isUser = false
                 )
 
                 saveMessageToFirestore(aiResponseMessage)
                 conversationHistory.add(aiResponseMessage)
-                updateChatUI(conversationHistory)
+                chatAdapter.addMessage(aiResponseMessage)
+                recyclerView.scrollToPosition(chatAdapter.itemCount - 1)
 
             } catch (e: Exception) {
                 Log.e("BeautyFragment", "Error getting AI response: ${e.message}", e)
@@ -287,7 +380,8 @@ class BeautyFragment : Fragment(R.layout.fragment_beauty) {
                 )
                 saveMessageToFirestore(errorMessage)
                 conversationHistory.add(errorMessage)
-                updateChatUI(conversationHistory)
+                chatAdapter.addMessage(errorMessage)  // Add error message
+                recyclerView.scrollToPosition(chatAdapter.itemCount - 1)
             }
         }
     }
@@ -316,7 +410,6 @@ class BeautyFragment : Fragment(R.layout.fragment_beauty) {
         }
     }
 
-
     private fun saveMessageToFirestore(message: Message) {
         lifecycleScope.launch {
             try {
@@ -331,7 +424,6 @@ class BeautyFragment : Fragment(R.layout.fragment_beauty) {
             }
         }
     }
-
 
     private fun listenForMessages() {
         db.collection("users")
@@ -353,14 +445,20 @@ class BeautyFragment : Fragment(R.layout.fragment_beauty) {
             }
     }
 
-
     private fun updateChatUI(messages: List<Message>) {
         if (isAdded) {
             requireActivity().runOnUiThread {
-                chatAdapter = ChatAdapter(messages)
-                recyclerView.layoutManager = LinearLayoutManager(context)
-                recyclerView.adapter = chatAdapter
-                recyclerView.scrollToPosition(messages.size - 1)
+                // Directly update the adapter's message list and notify the changes
+                val diff = messages.size - chatAdapter.itemCount
+
+                // If there are new messages, add them to the adapter
+                if (diff > 0) {
+                    chatAdapter.messages.addAll(messages.subList(chatAdapter.itemCount, messages.size))
+                    chatAdapter.notifyItemRangeInserted(chatAdapter.itemCount, diff)
+                }
+
+                // Scroll to the latest message
+                recyclerView.scrollToPosition(chatAdapter.itemCount - 1)
             }
         }
     }
@@ -381,7 +479,7 @@ class BeautyFragment : Fragment(R.layout.fragment_beauty) {
                     if (isAdded) { // Check if Fragment is attached
                         requireActivity().runOnUiThread {
                             beautyFragmentOverlay?.isVisible =
-                                subscription?.lowercase() == "Free Plan (Default)" && count > 20
+                                subscription?.lowercase() == "free plan (default)" && count > 20
                         }
                     }
                 }
@@ -392,5 +490,4 @@ class BeautyFragment : Fragment(R.layout.fragment_beauty) {
             Log.e("BeautyFragment", "Error fetching user data: ${e.message}", e)
         }
     }
-
 }
