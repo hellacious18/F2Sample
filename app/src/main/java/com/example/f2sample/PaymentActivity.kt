@@ -66,7 +66,7 @@ class PaymentActivity : AppCompatActivity(), PaymentResultListener {
 
     private fun startPayment(subscription: Subscription) {
         val checkout = Checkout()
-        checkout.setKeyID("rzp_test_9PD465v1tKJruT")
+        checkout.setKeyID("RAZORPAY_KEY_ID")
 
         val user = auth.currentUser
         val email = user?.email ?: "test@example.com"
