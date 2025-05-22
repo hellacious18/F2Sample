@@ -5,6 +5,18 @@ This project is an Android-based AI-powered fashion and beauty recommendation ap
 
 ---
 
+
+## ✨ Features
+
+- AI-powered fashion & beauty recommendations
+- Facial/body feature analysis from uploaded images
+- Firebase Authentication for secure login
+- Real-time sync using Firestore
+- AI chatbot for style guidance
+- Image sharing capabilities
+
+---
+
 ## 📥 Download APK
 
 👉 **[Download APK from Google Drive](https://drive.google.com/drive/folders/17SWoELcmwZsusnbUQmJeXXR1gVsw2svr)**  
@@ -19,17 +31,6 @@ This project is an Android-based AI-powered fashion and beauty recommendation ap
 <img src="./screenshots/Picture4.png" width="200"/> 
 <img src="./screenshots/Picture5.png" width="200"/> 
 <img src="./screenshots/Picture6.png" width="200"/> 
-
----
-
-## ✨ Features
-
-- AI-powered fashion & beauty recommendations
-- Facial/body feature analysis from uploaded images
-- Firebase Authentication for secure login
-- Real-time sync using Firestore
-- AI chatbot for style guidance
-- Image sharing capabilities
 
 ---
 
