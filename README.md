@@ -13,7 +13,7 @@ This project is an Android-based AI-powered fashion and beauty recommendation ap
 - Firebase Authentication for secure login
 - Real-time sync using Firestore
 - AI chatbot for style guidance
-- Image sharing capabilities
+- Social User Feed 
 
 ---
 
